@@ -56,6 +56,37 @@ for node in re.findall(r"<node [^>]*>", sys.stdin.read()):
   adb shell input tap $point
 }
 
+# Fails if the bottom tab bar shows fewer than 4 icons (icon-font glyphs with a real size). Icons are found
+# through the accessibility tree; if it exposes no icon glyphs at all, the check is skipped with a warning.
+check_tab_icons() {
+  local result
+  dump >"$OUT/my-trip-ui.xml"
+  result=$(python3 - "$OUT/my-trip-ui.xml" <<'PY'
+import html, re, sys
+xml = open(sys.argv[1], encoding="utf-8").read()
+nodes = [dict(re.findall(r'([\w-]+)="([^"]*)"', n)) for n in re.findall(r"<node [^>]*>", xml)]
+bottom = max(int(re.findall(r"\d+", n["bounds"])[3]) for n in nodes if "bounds" in n)
+glyphs = tab_icons = 0
+for n in nodes:
+    text = html.unescape(n.get("text", ""))
+    if len(text) == 1 and 0xE000 <= ord(text) <= 0xF8FF:  # Ionicons glyphs live in the private-use area
+        glyphs += 1
+        x1, y1, x2, y2 = map(int, re.findall(r"\d+", n["bounds"]))
+        if x2 > x1 and y2 > y1 and (y1 + y2) / 2 > bottom * 0.85:
+            tab_icons += 1
+print(glyphs, tab_icons)
+PY
+)
+  read -r glyphs tab_icons <<<"$result"
+  if [ "$glyphs" -eq 0 ]; then
+    echo "::warning::No icon glyphs in the accessibility tree, so tab bar icons could not be checked"
+  elif [ "$tab_icons" -lt 4 ]; then
+    fail "tab bar icons are missing (found $tab_icons of 4)"
+  else
+    echo "  ✓ sees $tab_icons tab bar icons"
+  fi
+}
+
 check_alive() {
   if adb logcat -d | grep -E "FATAL EXCEPTION|JavascriptException|Unhandled JS Exception"; then
     fail "the app crashed"
@@ -82,22 +113,39 @@ tap "3 days in Seoul"
 wait_for "Your days"
 wait_for "Royal Seoul"
 wait_for "Gangnam &amp; the Han River"
+check_tab_icons
 check_alive
 shot 2-my-trip
 
-echo "3. Opening a day shows what's next"
+echo "3. Every tab opens"
+tap "Places"
+wait_for "places we&apos;ve actually been to"
+check_alive
+shot 3-places
+tap "Korean"
+wait_for "안녕하세요"
+check_alive
+shot 4-korean
+tap "Read"
+wait_for "Seoul Sip"
+check_alive
+shot 5-read
+tap "My Trip"
+wait_for "Your days"
+
+echo "4. Opening a day shows what's next"
 tap "Day 1: Royal Seoul"
 wait_for "NEXT UP"
 wait_for "Directions"
 check_alive
-shot 3-day
+shot 6-day
 
-echo "4. A friend's share link opens the trip preview"
+echo "5. A friend's share link opens the trip preview"
 adb shell am start -W -a android.intent.action.VIEW \
   -d "'unravelkorea://import?n=Shared%20trip&d=bukchon.myeongdong&t=Hanok%20morning'" "$PKG" >/dev/null
 wait_for "Use this trip"
 wait_for "Hanok morning"
 check_alive
-shot 4-shared-link
+shot 7-shared-link
 
 echo "Smoke test passed"

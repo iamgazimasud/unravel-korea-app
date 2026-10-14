@@ -36,8 +36,9 @@ Every push to `main` runs `.github/workflows/test-apk.yml`:
 
 1. builds the release APK for phones (arm64) and for the emulator (x86_64),
 2. installs the emulator build on an Android 14 emulator and clicks through first launch with
-   `scripts/android-smoke-test.sh` (welcome question → plan → day view → shared-trip link), failing on any crash,
-3. only then publishes the phone APK as the `test-build` pre-release, replacing the previous one.
+   `scripts/android-smoke-test.sh` (welcome question → plan → every tab → day view → shared-trip link), failing on
+   any crash, missing screen or missing tab bar icons,
+3. only then publishes the phone APK on the `test-build` pre-release, replacing the previous file in place.
 
 Screenshots of each smoke-test step are attached to the workflow run. The same script works against a phone
 plugged in over USB: `scripts/android-smoke-test.sh path/to/app.apk`. Test builds are signed with the debug key —

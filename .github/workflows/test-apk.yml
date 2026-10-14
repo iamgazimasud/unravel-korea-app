@@ -123,6 +123,14 @@ jobs:
           **Install on Android:** open this page on your phone, tap **unravel-korea-test.apk**, then open the download and allow installing from this source.
 
           Signed with a test key — for trying the app, not for Google Play."
-          gh release delete test-build --cleanup-tag --yes || true
-          gh release create test-build unravel-korea-test.apk \
-            --prerelease --target "$GITHUB_SHA" --title "Test build (Android)" --notes "$notes"
+          if gh release view test-build >/dev/null 2>&1; then
+            # Replace the file in place, so the download link never goes dead between builds.
+            gh release upload test-build unravel-korea-test.apk --clobber
+            gh release edit test-build --prerelease --title "Test build (Android)" --notes "$notes"
+            # Keep the tag (and the release's source-code downloads) on the commit this APK was built from.
+            gh api -X PATCH "repos/$GH_REPO/git/refs/tags/test-build" -f sha="$GITHUB_SHA" -F force=true >/dev/null ||
+              echo "::warning::The APK is updated, but the test-build tag could not be moved to $GITHUB_SHA"
+          else
+            gh release create test-build unravel-korea-test.apk \
+              --prerelease --target "$GITHUB_SHA" --title "Test build (Android)" --notes "$notes"
+          fi

@@ -14,6 +14,10 @@ const TabIcons: Record<string, [string, string]> = {
   read: ['newspaper', 'newspaper-outline'],
 };
 
+const ICON_SIZE = 22;
+const ICON_PILL_WIDTH = 54;
+const ICON_PILL_HEIGHT = 26;
+
 export default function TabLayout() {
   const c = useColors();
   const insets = useSafeAreaInsets();
@@ -38,6 +42,9 @@ export default function TabLayout() {
           paddingBottom: Math.max(insets.bottom, 6),
         },
         tabBarItemStyle: { gap: 2 },
+        // The tab bar sizes the icon slot for a bare 24pt icon. Our icon sits on a wider pill, so the slot
+        // must fit the pill: on Android a narrower slot squeezes the icon to zero width (web just overflows).
+        tabBarIconStyle: { width: ICON_PILL_WIDTH, height: ICON_PILL_HEIGHT },
         tabBarLabelStyle: { fontFamily: Fonts.semibold, fontSize: 11, lineHeight: 15, marginTop: 2 },
         tabBarIcon: ({ focused, color }) => {
           const [on, off] = TabIcons[route.name] ?? ['ellipse', 'ellipse-outline'];
@@ -45,12 +52,14 @@ export default function TabLayout() {
             // Active tab sits on a soft brand-blue pill.
             <View
               style={{
-                paddingHorizontal: 16,
-                paddingVertical: 2,
+                width: ICON_PILL_WIDTH,
+                height: ICON_PILL_HEIGHT,
+                alignItems: 'center',
+                justifyContent: 'center',
                 borderRadius: 999,
                 backgroundColor: focused ? c.primarySoft : 'transparent',
               }}>
-              <Icon name={focused ? on : off} size={22} color={color} />
+              <Icon name={focused ? on : off} size={ICON_SIZE} color={color} />
             </View>
           );
         },
