@@ -33,5 +33,11 @@ jobs:
 
       - run: npm ci
 
+      # Creates the Expo project on first use (or links the existing one) for whoever owns EXPO_TOKEN.
+      - name: Link the Expo project
+        run: eas init --non-interactive --force
+
+      # The very first Android build needs the app's upload key, which Expo only creates in an interactive
+      # session (see docs/LAUNCH.md). After that, this workflow can build on its own.
       - name: Start EAS build (runs in Expo's cloud)
         run: eas build --platform android --profile ${{ inputs.profile }} --non-interactive --no-wait

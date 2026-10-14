@@ -138,6 +138,7 @@ closed days and prices are approximate; re-check them before publishing.
 ## Docs
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the app is put together, key decisions, known limitations
+- [`docs/LAUNCH.md`](docs/LAUNCH.md) — **start here to publish:** Vercel + Google Play, step by step
 - [`docs/RELEASING.md`](docs/RELEASING.md) — build, submit, smoke test, hotfix, rollback
 - [`store/listing.md`](store/listing.md) — Google Play listing and policy answers
 - [`CHANGELOG.md`](CHANGELOG.md)
