@@ -12,6 +12,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUBSCRIBE_ENDPOINT": "https://unravel-korea-api.vercel.app/api/subscribe"
+      },
       "android": {
         "buildType": "app-bundle"
       }

@@ -60,6 +60,13 @@
     },
     "description": "Plan your Korea trip, carry it offline, and read Unravel Korea guides and the Seoul Sip newsletter.",
     "platforms": ["android", "ios", "web"],
-    "backgroundColor": "#F7FAFD"
+    "backgroundColor": "#F7FAFD",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ab2747c3-0a48-476a-907f-064a8b2d7bb7"
+      }
+    },
+    "owner": "iamgazimasud"
   }
 }
