@@ -7,6 +7,7 @@ import { getSpot } from '@/data/spots';
 import { formatDate } from '@/lib/dates';
 import { confirm } from '@/lib/platform';
 import { decodeSharedTrip } from '@/lib/share';
+import { plural } from '@/lib/text';
 import { dayDate, dayTitle, stopCount, useAppState } from '@/state/app-state';
 import { Radius, Space } from '@/theme';
 
@@ -15,7 +16,7 @@ const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 /** Opened from a shared link: unravelkorea://import?n=...&s=...&d=... */
 export default function ImportScreen() {
   const params = useLocalSearchParams<{ n?: string; s?: string; d?: string; t?: string }>();
-  const { ready, trip, replaceTrip } = useAppState();
+  const { ready, trip, replaceTrip, completeOnboarding } = useAppState();
   const shared = decodeSharedTrip(params);
 
   // Wait for saved state so we know whether to ask before replacing an existing trip.
@@ -42,6 +43,8 @@ export default function ImportScreen() {
       return;
     }
     replaceTrip(shared);
+    // Someone opening a friend's link on a fresh install already has their trip: skip the plan question.
+    completeOnboarding();
     router.replace('/');
   };
 
@@ -50,7 +53,7 @@ export default function ImportScreen() {
       back={close}
       eyebrow="SOMEONE SHARED A TRIP WITH YOU"
       title={shared.name}
-      subtitle={`${shared.days.length} days · ${stopCount(shared)} places`}>
+      subtitle={`${plural(shared.days.length, 'day')} · ${plural(stopCount(shared), 'place')}`}>
       <HeaderPill label="Use this trip" icon="download" onPress={save} />
     </BrandHeader>
   );

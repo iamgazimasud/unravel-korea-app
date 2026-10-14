@@ -215,29 +215,15 @@ export function BrandHeader({
 }
 
 /** Round, translucent white button for use on the blue header or over photos. */
-export function HeaderButton({
-  icon,
-  label,
-  onPress,
-  active,
-}: {
-  icon: string;
-  label: string;
-  onPress: () => void;
-  active?: boolean;
-}) {
+export function HeaderButton({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
       hitSlop={8}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [
-        styles.headerButton,
-        active && { backgroundColor: '#FFFFFF' },
-        pressed && { opacity: 0.7 },
-      ]}>
-      <Icon name={icon} size={20} color={active ? Brand.navy : '#FFFFFF'} />
+      style={({ pressed }) => [styles.headerButton, pressed && { opacity: 0.7 }]}>
+      <Icon name={icon} size={20} color="#FFFFFF" />
     </Pressable>
   );
 }

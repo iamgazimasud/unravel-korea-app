@@ -24,6 +24,7 @@ import { Plans } from '@/data/plans';
 import { getSpot, isClosedOn, Spots, type Spot } from '@/data/spots';
 import { addDays, formatDate, parseISODate } from '@/lib/dates';
 import { confirm } from '@/lib/platform';
+import { plural } from '@/lib/text';
 import {
   dayDate,
   dayTitle,
@@ -119,8 +120,9 @@ export default function MyTripScreen() {
 function TripHeader({ trip, phase, onSettings }: { trip: Trip; phase: TripPhase; onSettings: () => void }) {
   const { clearStops, setStartDate } = useAppState();
   const stops = stopCount(trip);
-  const places = `${trip.days.length} days · ${stops} places`;
-  const settings = stops ? <HeaderButton icon="options" label="Trip settings" onPress={onSettings} /> : undefined;
+  const places = `${plural(trip.days.length, 'day')} · ${plural(stops, 'place')}`;
+  // Always reachable: it is the only place to set the arrival date and the trip length.
+  const settings = <HeaderButton icon="options" label="Trip settings" onPress={onSettings} />;
 
   switch (phase.kind) {
     case 'empty':
@@ -147,7 +149,7 @@ function TripHeader({ trip, phase, onSettings }: { trip: Trip; phase: TripPhase;
           right={settings}
           eyebrow={trip.name.toUpperCase()}
           title={phase.daysToGo === 1 ? 'Tomorrow! 🎉' : `${phase.daysToGo} days to go`}
-          subtitle={`${range} · ${stops} places`}
+          subtitle={stops ? `${range} · ${plural(stops, 'place')}` : range}
         />
       );
     }
@@ -240,7 +242,7 @@ function DayCard({ trip, day, ids, isToday }: { trip: Trip; day: number; ids: st
 
       <View style={styles.meta}>
         <T variant="caption" tone="muted">
-          {spots.length ? `${spots.length} places · ~${hours}h` : 'Free day — tap to add places'}
+          {spots.length ? `${plural(spots.length, 'place')} · ~${hours}h` : 'Free day — tap to add places'}
         </T>
         {done ? <Badge tone="success" icon="checkmark" label={`${done} done`} /> : null}
         {closed ? <Badge tone="warning" icon="alert-circle" label={`${closed} closed this day`} /> : null}

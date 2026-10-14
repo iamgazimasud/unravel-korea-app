@@ -5,14 +5,22 @@ import { BrandLogo } from '@/components/brand-logo';
 import { PlanCard } from '@/components/plan-card';
 import { BrandHeader, Button, Screen, T } from '@/components/ui';
 import { Plans, type PlanId } from '@/data/plans';
-import { useAppState } from '@/state/app-state';
+import { confirm } from '@/lib/platform';
+import { stopCount, useAppState } from '@/state/app-state';
 import { Space } from '@/theme';
 
 /** First launch: one question. Picking an answer builds a complete day-by-day plan. */
 export default function OnboardingScreen() {
-  const { completeOnboarding, startPlan } = useAppState();
+  const { trip, completeOnboarding, startPlan } = useAppState();
 
-  const choose = (planId: PlanId) => {
+  const choose = async (planId: PlanId) => {
+    // Never silently replace places that are already planned.
+    if (
+      stopCount(trip) &&
+      !(await confirm('Replace your trip?', `"${trip.name}" will be replaced by a ready-made plan.`, 'Replace'))
+    ) {
+      return;
+    }
     startPlan(planId);
     completeOnboarding();
     router.replace('/');

@@ -12,12 +12,20 @@ import { dayDate, sanitizeTrip, stopCount, type Trip } from '@/state/trip-ops';
  */
 export function tripShareUrl(trip: Trip): string {
   const queryParams: Record<string, string> = {
-    n: trip.name,
+    n: linkSafe(trip.name),
     d: trip.days.map((d) => d.join('.')).join('~'),
   };
   if (trip.startDate) queryParams.s = trip.startDate;
-  if (trip.dayTitles.some(Boolean)) queryParams.t = trip.dayTitles.map((t) => t.replace(/~/g, '-')).join('~');
+  if (trip.dayTitles.some(Boolean)) queryParams.t = trip.dayTitles.map(linkSafe).join('~');
   return Linking.createURL('/import', { queryParams });
+}
+
+/**
+ * expo-router decodes query values and re-parses them when the app is opened from a link, so a
+ * value must not contain `&`, `#`, `%` or `+` (even encoded), or `~` (our day separator).
+ */
+function linkSafe(text: string): string {
+  return text.replace(/&/g, 'and').replace(/~/g, '-').replace(/[#%+]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 export function decodeSharedTrip(params: { n?: string; s?: string; d?: string; t?: string }): Trip | null {

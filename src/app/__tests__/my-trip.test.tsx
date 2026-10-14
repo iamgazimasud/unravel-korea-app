@@ -6,9 +6,11 @@ import { Text } from 'react-native';
 import MyTripScreen from '@/app/(tabs)/index';
 import OnboardingScreen from '@/app/onboarding';
 import { addDays, today } from '@/lib/dates';
+import { confirm } from '@/lib/platform';
 import { AppStateProvider, STORAGE_KEY, useAppState } from '@/state/app-state';
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() } }));
+jest.mock('@/lib/platform', () => ({ ...jest.requireActual('@/lib/platform'), confirm: jest.fn() }));
 
 async function seed(trip: object) {
   await AsyncStorage.setItem(
@@ -50,6 +52,18 @@ describe('My Trip', () => {
     expect(screen.getByText('trip: 3 days in Seoul')).toBeTruthy();
   });
 
+  it('always offers trip settings, even before there are places (date and length live there)', async () => {
+    await renderWithState(<MyTripScreen />);
+    expect(await screen.findByLabelText('Trip settings')).toBeTruthy();
+  });
+
+  it('says "1 place", not "1 places"', async () => {
+    await renderWithState(<MyTripScreen />);
+    await fireEvent.press(await screen.findByLabelText(/^7 days in Seoul/));
+    expect(await screen.findByText(/^1 place · ~/)).toBeTruthy(); // the DMZ day
+    expect(screen.queryByText(/\b1 places\b/)).toBeNull();
+  });
+
   it('opens a day when you tap it', async () => {
     await seed({ name: 'Test', startDate: null, days: [['bukchon'], ['myeongdong']], dayTitles: ['', 'Shopping'] });
     await renderWithState(<MyTripScreen />);
@@ -87,6 +101,17 @@ describe('Onboarding', () => {
     await fireEvent.press(await screen.findByLabelText(/^7 days in Seoul/));
     expect(router.replace).toHaveBeenCalledWith('/');
     expect(await screen.findByText('trip: 7 days in Seoul')).toBeTruthy();
+  });
+
+  it('asks before replacing places that are already planned (e.g. a trip imported from a link)', async () => {
+    jest.mocked(confirm).mockResolvedValue(false);
+    await seed({ name: "Mina's trip", startDate: null, days: [['bukchon']] });
+    await AsyncStorage.mergeItem(STORAGE_KEY, JSON.stringify({ prefs: { onboarded: false, subscribed: false } }));
+    await renderWithState(<OnboardingScreen />);
+    await fireEvent.press(await screen.findByLabelText(/^3 days in Seoul/));
+    expect(confirm).toHaveBeenCalled();
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(screen.getByText("trip: Mina's trip")).toBeTruthy();
   });
 
   it('lets people skip the plan and browse places instead', async () => {

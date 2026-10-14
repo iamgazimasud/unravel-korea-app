@@ -6,6 +6,7 @@
 import type { Plan } from '@/data/plans';
 import { getSpot } from '@/data/spots';
 import { addDays, daysBetween, isValidISODate, today } from '@/lib/dates';
+import { plural } from '@/lib/text';
 
 export type Trip = {
   name: string;
@@ -72,18 +73,28 @@ function fitTitles(titles: string[], count: number): string[] {
   return Array.from({ length: count }, (_, i) => titles[i] ?? '');
 }
 
+/** Ready-made plans are named after their length ("5 days in Seoul"), so the name follows the length. */
+const LENGTH_NAME = /^\d+ days? in Seoul$/;
+
 /** Grows or shrinks the trip. Stops on removed days are folded into the new last day, never dropped. */
 export function resizeDays(trip: Trip, count: number): Trip {
   const n = clampDays(count);
   const { days } = trip;
   if (n === days.length) return trip;
+  const name = LENGTH_NAME.test(trip.name) ? `${plural(n, 'day')} in Seoul` : trip.name;
   const dayTitles = fitTitles(trip.dayTitles, n);
   if (n > days.length) {
-    return withDays({ ...trip, dayTitles }, [...days, ...Array.from({ length: n - days.length }, () => [])]);
+    return withDays({ ...trip, name, dayTitles }, [...days, ...Array.from({ length: n - days.length }, () => [])]);
   }
   const kept = days.slice(0, n);
-  kept[n - 1] = [...new Set([...kept[n - 1], ...days.slice(n).flat()])];
-  return withDays({ ...trip, dayTitles }, kept);
+  const moved = days
+    .slice(n)
+    .flat()
+    .filter((id) => !kept[n - 1].includes(id));
+  kept[n - 1] = [...new Set([...kept[n - 1], ...moved])];
+  // The last day now also holds other days' places, so its theme ("Royal Seoul") no longer fits.
+  if (moved.length) dayTitles[n - 1] = '';
+  return withDays({ ...trip, name, dayTitles }, kept);
 }
 
 export function addSpot(trip: Trip, day: number, spotId: string): Trip {

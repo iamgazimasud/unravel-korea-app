@@ -36,17 +36,6 @@ export const CategoryLabels: Record<Category, string> = {
   beyond: 'Beyond Seoul',
 };
 
-export const CategoryIcons: Record<Category, string> = {
-  heritage: 'business',
-  neighborhood: 'walk',
-  market: 'basket',
-  shopping: 'bag-handle',
-  daytrip: 'train',
-  nature: 'leaf',
-  food: 'restaurant',
-  beyond: 'map',
-};
-
 /** The four filters on the Places tab — fewer, broader choices than the eight categories. */
 export type PlaceFilter = 'sights' | 'food' | 'shopping' | 'daytrips';
 
@@ -480,7 +469,7 @@ export const Spots: Spot[] = [
     directions: 'KTX Seoul → Busan (~2h30m)',
     price: 'Gamcheon is free',
     duration: 8,
-    tips: ['Give Busan at least 2 days — see the Busan guide in the Read tab.'],
+    tips: ['Give Busan at least 2 days — our Busan guide is linked below.'],
   },
   {
     id: 'jeju',

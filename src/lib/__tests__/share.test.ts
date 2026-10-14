@@ -1,5 +1,9 @@
+import { extractExpoPathFromURL } from 'expo-router/build/fork/extractPathFromURL';
+import { parseQueryParams } from 'expo-router/build/fork/getStateFromPath-forks';
+
+import { getPlan, Plans } from '@/data/plans';
 import { decodeSharedTrip, tripShareUrl, tripToText } from '@/lib/share';
-import type { Trip } from '@/state/trip-ops';
+import { tripFromPlan, type Trip } from '@/state/trip-ops';
 
 jest.mock('expo-linking', () => ({
   createURL: (path: string, { queryParams }: { queryParams: Record<string, string> }) =>
@@ -22,6 +26,7 @@ describe('share links', () => {
     expect(params.t).toBe('Royal Seoul~~Busan - by the sea');
     expect(decodeSharedTrip(params)).toEqual({
       ...trip,
+      name: 'Seoul and Busan',
       dayTitles: ['Royal Seoul', '', 'Busan - by the sea'],
       done: [],
     });
@@ -47,6 +52,36 @@ describe('share links', () => {
     const t = decodeSharedTrip({ d: 'bukchon', s: '2026-13-45', n: 'x'.repeat(200) });
     expect(t?.startDate).toBeNull();
     expect(t?.name).toHaveLength(60);
+  });
+});
+
+/** What the import screen receives when the app is opened from `url` (expo-router's real parsing). */
+function openedFrom(url: string) {
+  const path = extractExpoPathFromURL([], url);
+  return parseQueryParams(path, { name: 'import', params: {} } as never) as Record<string, string>;
+}
+
+describe('share links opened in the app', () => {
+  // Regression: "Gangnam & the Han River" cut the titles off at the "&", because expo-router decodes
+  // query values and re-splits them on "&".
+  it.each(Plans.map((p) => [p.name, p] as const))('%s arrives with every day theme', (_name, plan) => {
+    const shared = decodeSharedTrip(openedFrom(tripShareUrl(tripFromPlan(plan, '2026-11-02'))));
+    expect(shared?.days).toEqual(plan.plan.map((d) => d.spots));
+    expect(shared?.dayTitles).toHaveLength(plan.days);
+    expect(shared?.dayTitles.every(Boolean)).toBe(true);
+    expect(shared?.dayTitles[2]).toBe('Gangnam and the Han River');
+    expect(shared?.startDate).toBe('2026-11-02');
+  });
+
+  it('survives characters that are special in URLs, in names and titles', () => {
+    const t = {
+      ...tripFromPlan(getPlan('3')!),
+      name: 'Mom & me #1 100% + friends',
+      dayTitles: ['A & B', 'C#D', 'E%F+G'],
+    };
+    const shared = decodeSharedTrip(openedFrom(tripShareUrl(t)));
+    expect(shared?.name).toBe('Mom and me 1 100 friends');
+    expect(shared?.dayTitles).toEqual(['A and B', 'C D', 'E F G']);
   });
 });
 

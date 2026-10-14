@@ -1,4 +1,4 @@
-import { CategoryIcons, CategoryLabels, closedDaysLabel, getSpot, isClosedOn, PlaceFilters, Spots } from '@/data/spots';
+import { CategoryLabels, closedDaysLabel, getSpot, isClosedOn, PlaceFilters, Spots } from '@/data/spots';
 import { PhotoCredits, SpotImages } from '@/data/spot-photos';
 import { parseISODate } from '@/lib/dates';
 
@@ -19,7 +19,6 @@ describe('spot catalog integrity', () => {
     expect(s.directions.trim()).not.toBe('');
     expect(s.duration).toBeGreaterThan(0);
     expect(CategoryLabels[s.category]).toBeDefined();
-    expect(CategoryIcons[s.category]).toBeDefined();
     for (const d of s.closedDays ?? []) expect(d).toBeGreaterThanOrEqual(0);
     for (const d of s.closedDays ?? []) expect(d).toBeLessThanOrEqual(6);
   });

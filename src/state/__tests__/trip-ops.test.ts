@@ -134,6 +134,21 @@ describe('resizeDays', () => {
     expect(resizeDays(t, 4).dayTitles).toEqual(['A', 'B', 'C', '']);
   });
 
+  it("drops the last day's theme when other days' places are folded into it", () => {
+    const t = tripFromPlan(getPlan('7')!);
+    const short = resizeDays(t, 3);
+    expect(short.dayTitles).toEqual(['Royal Seoul', 'Modern Seoul', '']);
+    expect(dayTitle(short, 2)).toBe('Day 3');
+    expect(short.days[2]).toEqual(expect.arrayContaining(['coex', 'dmz', 'nami', 'tea-house']));
+  });
+
+  it('renames a ready-made plan to match its new length, but never a custom name', () => {
+    const t = tripFromPlan(getPlan('5')!);
+    expect(resizeDays(t, 7).name).toBe('7 days in Seoul');
+    expect(resizeDays(t, 1).name).toBe('1 day in Seoul');
+    expect(resizeDays({ ...t, name: 'Honeymoon' }, 7).name).toBe('Honeymoon');
+  });
+
   it('folds stops from removed days into the new last day instead of dropping them', () => {
     const t = trip([['bukchon'], ['myeongdong'], ['mangwon', 'bukchon']]);
     expect(resizeDays(t, 1).days).toEqual([['bukchon', 'myeongdong', 'mangwon']]);

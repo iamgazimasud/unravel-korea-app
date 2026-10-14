@@ -4,6 +4,7 @@ import { SpotPhoto } from '@/components/spot-card';
 import { Badge, Card, Icon, T } from '@/components/ui';
 import { planPlaceCount, RECOMMENDED_PLAN, type Plan } from '@/data/plans';
 import { getSpot, type Spot } from '@/data/spots';
+import { plural } from '@/lib/text';
 import { Brand, Fonts, Radius, Space, useColors } from '@/theme';
 
 /** One tappable ready-made trip: three photos, the length in big type, and what's in it. */
@@ -16,7 +17,7 @@ export function PlanCard({ plan, onPress }: { plan: Plan; onPress: () => void })
     <Card
       onPress={onPress}
       style={[styles.card, recommended && { borderWidth: 2, borderColor: c.primary }]}
-      accessibilityLabel={`${plan.name}. ${plan.tagline}. ${planPlaceCount(plan)} places.`}>
+      accessibilityLabel={`${plan.name}. ${plan.tagline}. ${plural(planPlaceCount(plan), 'place')}.`}>
       <View style={styles.photos}>
         {photos.map((s) => (
           <SpotPhoto key={s.id} spot={s} style={{ flex: 1 }} />
@@ -38,7 +39,7 @@ export function PlanCard({ plan, onPress }: { plan: Plan; onPress: () => void })
           <T variant="title">{plan.name}</T>
           <T tone="muted">{plan.tagline}</T>
           <T variant="label" tone="primary" style={{ marginTop: Space.xs }}>
-            {planPlaceCount(plan)} places · ready to go
+            {plural(planPlaceCount(plan), 'place')} · ready to go
           </T>
         </View>
         <View style={[styles.go, { backgroundColor: c.primary }]}>

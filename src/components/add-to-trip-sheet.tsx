@@ -4,6 +4,7 @@ import { Sheet } from '@/components/sheet';
 import { Badge, Icon, T } from '@/components/ui';
 import { isClosedOn, type Spot } from '@/data/spots';
 import { formatDate, parseISODate } from '@/lib/dates';
+import { plural } from '@/lib/text';
 import { dayDate, dayTitle, useAppState } from '@/state/app-state';
 import { Radius, Space, useColors } from '@/theme';
 
@@ -45,7 +46,7 @@ export function AddToTripSheet({ spot, onClose }: { spot: Spot | null; onClose: 
                     {title}
                   </T>
                   <T variant="caption" tone="muted">
-                    {[date ? formatDate(date) : null, ids.length ? `${ids.length} places` : 'Nothing planned yet']
+                    {[date ? formatDate(date) : null, ids.length ? plural(ids.length, 'place') : 'Nothing planned yet']
                       .filter(Boolean)
                       .join(' · ')}
                   </T>
