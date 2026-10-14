@@ -19,7 +19,11 @@ export function ShowKoreanModal({
 }) {
   const c = useColors();
   return (
-    <Modal visible={visible} animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Modal
+      visible={visible}
+      animationType="fade"
+      onRequestClose={onClose}
+      supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.root, { backgroundColor: c.surface }]} onPress={onClose} accessibilityLabel="Close">
         <View style={styles.center}>
           {lead ? (

@@ -26,7 +26,10 @@ export default function HomeScreen() {
       spot: s,
       score: s.interests.filter((i) => prefs.interests.includes(i)).length,
     }));
-    return scored.sort((a, b) => b.score - a.score).slice(0, 8).map((x) => x.spot);
+    return scored
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map((x) => x.spot);
   }, [trip.days, prefs.interests]);
 
   return (
@@ -50,7 +53,10 @@ export default function HomeScreen() {
         </View>
       </Section>
 
-      <Section title="Seoul Sip ☕" action="More" onAction={() => router.push({ pathname: '/read', params: { tab: 'newsletter' } })}>
+      <Section
+        title="Seoul Sip ☕"
+        action="More"
+        onAction={() => router.push({ pathname: '/read', params: { tab: 'newsletter' } })}>
         <T tone="muted" style={{ marginBottom: Space.md }}>
           What&apos;s happening in Korea, in 5 minutes. Free, weekly.
         </T>
@@ -142,7 +148,10 @@ function TripStatusCard() {
       <T tone="onPrimary" style={{ opacity: 0.9 }}>
         {body}
       </T>
-      <Pressable onPress={cta.go} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.85 }]} accessibilityRole="button">
+      <Pressable
+        onPress={cta.go}
+        style={({ pressed }) => [styles.cta, pressed && { opacity: 0.85 }]}
+        accessibilityRole="button">
         <Icon name={cta.icon} size={18} color="#1A1F2B" />
         <T variant="label" style={{ color: '#1A1F2B' }}>
           {cta.label}
@@ -155,9 +164,7 @@ function TripStatusCard() {
 function PickCard({ spot, onAdd }: { spot: Spot; onAdd: () => void }) {
   const c = useColors();
   return (
-    <Card
-      onPress={() => router.push({ pathname: '/spot/[id]', params: { id: spot.id } })}
-      style={styles.pick}>
+    <Card onPress={() => router.push({ pathname: '/spot/[id]', params: { id: spot.id } })} style={styles.pick}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <CategoryTile spot={spot} size={40} />
         <Pressable onPress={onAdd} hitSlop={10} accessibilityLabel={`Add ${spot.name} to trip`}>

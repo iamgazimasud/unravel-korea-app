@@ -9,12 +9,8 @@ export type MapApp = 'naver' | 'kakao';
  */
 export async function openInMap(app: MapApp, query: string) {
   const q = encodeURIComponent(query);
-  const native =
-    app === 'naver'
-      ? `nmap://search?query=${q}&appname=com.unravelkorea.app`
-      : `kakaomap://search?q=${q}`;
-  const web =
-    app === 'naver' ? `https://map.naver.com/p/search/${q}` : `https://map.kakao.com/?q=${q}`;
+  const native = app === 'naver' ? `nmap://search?query=${q}&appname=com.unravelkorea.app` : `kakaomap://search?q=${q}`;
+  const web = app === 'naver' ? `https://map.naver.com/p/search/${q}` : `https://map.kakao.com/?q=${q}`;
 
   if (Platform.OS !== 'web') {
     try {

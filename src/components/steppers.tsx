@@ -36,7 +36,12 @@ export function NumberStepper({
   const c = useColors();
   return (
     <View style={[styles.row, { backgroundColor: c.surface, borderColor: c.border }]}>
-      <IconButton icon="remove" label={`Fewer ${unit[1]}`} disabled={value <= min} onPress={() => onChange(value - 1)} />
+      <IconButton
+        icon="remove"
+        label={`Fewer ${unit[1]}`}
+        disabled={value <= min}
+        onPress={() => onChange(value - 1)}
+      />
       <T variant="heading" style={styles.value}>
         {value} {value === 1 ? unit[0] : unit[1]}
       </T>

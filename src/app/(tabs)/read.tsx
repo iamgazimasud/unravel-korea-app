@@ -156,7 +156,11 @@ function GuidesList({ latest }: { latest: FeedState<Article[]> }) {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        <Chip label="Latest" selected={filter.category === null} onPress={() => applyFilter({ ...filter, category: null })} />
+        <Chip
+          label="Latest"
+          selected={filter.category === null}
+          onPress={() => applyFilter({ ...filter, category: null })}
+        />
         {Config.blogCategories.map((cat) => (
           <Chip
             key={cat.id}

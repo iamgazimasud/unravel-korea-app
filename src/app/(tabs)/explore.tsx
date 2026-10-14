@@ -75,7 +75,11 @@ export default function ExploreScreen() {
         <EmptyState
           icon={filter === 'saved' ? 'heart' : 'search'}
           title={filter === 'saved' ? 'No saved spots yet' : 'Nothing found'}
-          body={filter === 'saved' ? 'Tap the heart on any spot to save it for later.' : 'Try another word, or search in Korean.'}
+          body={
+            filter === 'saved'
+              ? 'Tap the heart on any spot to save it for later.'
+              : 'Try another word, or search in Korean.'
+          }
         />
       ) : (
         <T variant="caption" tone="muted" style={{ marginTop: Space.lg, textAlign: 'center' }}>

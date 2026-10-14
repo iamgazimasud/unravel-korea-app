@@ -74,17 +74,46 @@ function SpotDetail({ spot }: { spot: Spot }) {
 
       <View style={styles.badges}>
         <Badge icon="time" label={`~${spot.duration}h here`} />
-        {closed ? <Badge tone="warning" icon="calendar" label={closed} /> : <Badge tone="success" icon="calendar" label="Open daily" />}
-        {inDays.length ? <Badge tone="success" icon="checkmark" label={`In your trip: Day ${inDays.join(', ')}`} /> : null}
+        {closed ? (
+          <Badge tone="warning" icon="calendar" label={closed} />
+        ) : (
+          <Badge tone="success" icon="calendar" label="Open daily" />
+        )}
+        {inDays.length ? (
+          <Badge tone="success" icon="checkmark" label={`In your trip: Day ${inDays.join(', ')}`} />
+        ) : null}
       </View>
 
       <View style={styles.buttons}>
-        <Button label="Naver Map" icon="navigate" style={{ flex: 1 }} onPress={() => openInMap('naver', spot.mapQuery)} />
-        <Button label="KakaoMap" icon="map" variant="secondary" style={{ flex: 1 }} onPress={() => openInMap('kakao', spot.mapQuery)} />
+        <Button
+          label="Naver Map"
+          icon="navigate"
+          style={{ flex: 1 }}
+          onPress={() => openInMap('naver', spot.mapQuery)}
+        />
+        <Button
+          label="KakaoMap"
+          icon="map"
+          variant="secondary"
+          style={{ flex: 1 }}
+          onPress={() => openInMap('kakao', spot.mapQuery)}
+        />
       </View>
       <View style={styles.buttons}>
-        <Button label="Taxi card" icon="car" variant="secondary" style={{ flex: 1 }} onPress={() => setShowTaxi(true)} />
-        <Button label={inDays.length ? 'Add again' : 'Add to trip'} icon="add" variant="accent" style={{ flex: 1 }} onPress={() => setAdding(true)} />
+        <Button
+          label="Taxi card"
+          icon="car"
+          variant="secondary"
+          style={{ flex: 1 }}
+          onPress={() => setShowTaxi(true)}
+        />
+        <Button
+          label={inDays.length ? 'Add again' : 'Add to trip'}
+          icon="add"
+          variant="accent"
+          style={{ flex: 1 }}
+          onPress={() => setAdding(true)}
+        />
       </View>
 
       <Card style={{ marginTop: Space.xl, gap: Space.xs }}>
@@ -118,8 +147,8 @@ function SpotDetail({ spot }: { spot: Spot }) {
       <FromTheBlog spot={spot} />
 
       <T variant="caption" tone="muted" style={{ marginTop: Space.xl, textAlign: 'center' }}>
-        Opening hours, closed days and prices are approximate and change without notice — check the official
-        source before you go.
+        Opening hours, closed days and prices are approximate and change without notice — check the official source
+        before you go.
       </T>
 
       <AddToTripSheet spot={adding ? spot : null} onClose={() => setAdding(false)} />
@@ -168,7 +197,10 @@ function FromTheBlog({ spot }: { spot: Spot }) {
     <View style={{ marginTop: Space.xl, gap: Space.sm }}>
       <T variant="title">From the blog</T>
       {posts.map((p) => (
-        <Card key={p.id} onPress={() => openLink(p.url)} style={{ flexDirection: 'row', alignItems: 'center', gap: Space.md }}>
+        <Card
+          key={p.id}
+          onPress={() => openLink(p.url)}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: Space.md }}>
           <Icon name="book" size={20} />
           <T variant="label" style={{ flex: 1 }}>
             {p.title}

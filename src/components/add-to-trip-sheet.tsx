@@ -17,11 +17,7 @@ export function AddToTripSheet({ spot, onClose }: { spot: Spot | null; onClose: 
     <Modal visible={!!spot} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" />
       {spot ? (
-        <View
-          style={[
-            styles.sheet,
-            { backgroundColor: c.background, paddingBottom: insets.bottom + Space.lg },
-          ]}>
+        <View style={[styles.sheet, { backgroundColor: c.background, paddingBottom: insets.bottom + Space.lg }]}>
           <View style={[styles.handle, { backgroundColor: c.border }]} />
           <T variant="title">Add to which day?</T>
           <T tone="muted" style={{ marginBottom: Space.md }}>

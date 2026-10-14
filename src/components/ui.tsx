@@ -20,7 +20,15 @@ import { MaxWidth, Radius, Space, useColors, type Colors } from '@/theme';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
-export function Icon({ name, size = 20, color }: { name: string; size?: number; color?: ComponentProps<typeof Ionicons>['color'] }) {
+export function Icon({
+  name,
+  size = 20,
+  color,
+}: {
+  name: string;
+  size?: number;
+  color?: ComponentProps<typeof Ionicons>['color'];
+}) {
   const c = useColors();
   return <Ionicons name={name as IoniconName} size={size} color={color ?? c.text} />;
 }
@@ -217,7 +225,13 @@ export function Button({
 }) {
   const c = useColors();
   const bg =
-    variant === 'primary' ? c.primary : variant === 'accent' ? c.accent : variant === 'secondary' ? c.surfaceAlt : 'transparent';
+    variant === 'primary'
+      ? c.primary
+      : variant === 'accent'
+        ? c.accent
+        : variant === 'secondary'
+          ? c.surfaceAlt
+          : 'transparent';
   const fg = variant === 'primary' || variant === 'accent' ? c.onPrimary : variant === 'ghost' ? c.primary : c.text;
   return (
     <Pressable
@@ -298,7 +312,15 @@ export function Chip({
   );
 }
 
-export function Badge({ label, tone = 'muted', icon }: { label: string; tone?: 'muted' | 'warning' | 'success' | 'accent' | 'primary'; icon?: string }) {
+export function Badge({
+  label,
+  tone = 'muted',
+  icon,
+}: {
+  label: string;
+  tone?: 'muted' | 'warning' | 'success' | 'accent' | 'primary';
+  icon?: string;
+}) {
   const c = useColors();
   const map = {
     muted: [c.surfaceAlt, c.textMuted],

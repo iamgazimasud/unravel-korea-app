@@ -33,7 +33,8 @@ export function ArticleRow({ article }: { article: Article }) {
       {article.image ? (
         <Image source={article.image} style={styles.image} contentFit="cover" transition={150} />
       ) : (
-        <View style={[styles.image, styles.placeholder, { backgroundColor: isNewsletter ? c.accentSoft : c.primarySoft }]}>
+        <View
+          style={[styles.image, styles.placeholder, { backgroundColor: isNewsletter ? c.accentSoft : c.primarySoft }]}>
           <Icon name={isNewsletter ? 'cafe' : 'book'} size={24} color={isNewsletter ? c.accent : c.primary} />
         </View>
       )}

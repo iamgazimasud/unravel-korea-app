@@ -3,15 +3,7 @@
  * Opening hours, closed days and prices are approximate; the app says so wherever it shows them.
  */
 
-export type Category =
-  | 'heritage'
-  | 'neighborhood'
-  | 'market'
-  | 'shopping'
-  | 'daytrip'
-  | 'nature'
-  | 'food'
-  | 'beyond';
+export type Category = 'heritage' | 'neighborhood' | 'market' | 'shopping' | 'daytrip' | 'nature' | 'food' | 'beyond';
 
 export type Interest = 'history' | 'food' | 'shopping' | 'kculture' | 'nature' | 'nightlife';
 

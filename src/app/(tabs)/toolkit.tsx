@@ -21,7 +21,10 @@ export default function ToolkitScreen() {
   return (
     <Screen title="Toolkit" subtitle="Phrases, numbers and know-how. Works offline.">
       <Section title="Say it in Korean">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: Space.sm, paddingBottom: Space.md }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: Space.sm, paddingBottom: Space.md }}>
           {PhraseGroups.map((g, i) => (
             <Chip key={g.title} label={g.title} selected={group === i} onPress={() => setGroup(i)} />
           ))}
@@ -38,11 +41,7 @@ export default function ToolkitScreen() {
                   {p.roman}
                 </T>
               </View>
-              <IconButton
-                icon="volume-high"
-                label={`Play ${p.en} in Korean`}
-                onPress={() => speakKorean(p.ko)}
-              />
+              <IconButton icon="volume-high" label={`Play ${p.en} in Korean`} onPress={() => speakKorean(p.ko)} />
               <IconButton icon="copy" label="Copy Korean" onPress={() => Clipboard.setStringAsync(p.ko)} />
             </Card>
           ))}
@@ -140,6 +139,12 @@ function AboutRow({ icon, label, onPress }: { icon: string; label: string; onPre
 const styles = StyleSheet.create({
   phrase: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, padding: Space.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.md },
-  number: { minWidth: 64, paddingHorizontal: Space.sm, paddingVertical: Space.sm, borderRadius: 12, alignItems: 'center' },
+  number: {
+    minWidth: 64,
+    paddingHorizontal: Space.sm,
+    paddingVertical: Space.sm,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
   tipHeader: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
 });

@@ -10,11 +10,7 @@ export function CategoryTile({ spot, size = 48 }: { spot: Spot; size?: number })
   const c = useColors();
   const warm = ['heritage', 'market', 'food'].includes(spot.category);
   return (
-    <View
-      style={[
-        styles.tile,
-        { width: size, height: size, backgroundColor: warm ? c.primarySoft : c.accentSoft },
-      ]}>
+    <View style={[styles.tile, { width: size, height: size, backgroundColor: warm ? c.primarySoft : c.accentSoft }]}>
       <Icon name={CategoryIcons[spot.category]} size={size * 0.45} color={warm ? c.primary : c.accent} />
     </View>
   );
@@ -41,9 +37,7 @@ export function SpotCard({ spot, onAdd }: { spot: Spot; onAdd?: (spot: Spot) => 
           {spot.nameKo} · {spot.area} · ~{spot.duration}h
         </T>
         <View style={styles.badges}>
-          {inDays.length ? (
-            <Badge tone="success" icon="checkmark" label={`Day ${inDays.join(', ')}`} />
-          ) : null}
+          {inDays.length ? <Badge tone="success" icon="checkmark" label={`Day ${inDays.join(', ')}`} /> : null}
           {closed ? <Badge tone="warning" icon="calendar" label={closed} /> : null}
         </View>
       </View>

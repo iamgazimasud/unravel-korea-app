@@ -12,10 +12,7 @@
       "bundleIdentifier": "com.unravelkorea.app",
       "supportsTablet": true,
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "nmap",
-          "kakaomap"
-        ],
+        "LSApplicationQueriesSchemes": ["nmap", "kakaomap"],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -57,10 +54,6 @@
       "reactCompiler": true
     },
     "description": "Plan your Korea trip, carry it offline, and read Unravel Korea guides and the Seoul Sip newsletter.",
-    "platforms": [
-      "android",
-      "ios",
-      "web"
-    ]
+    "platforms": ["android", "ios", "web"]
   }
 }
