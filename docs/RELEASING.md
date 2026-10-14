@@ -32,9 +32,16 @@ export or Gradle build after changing one of these values, clear the cache first
 
 ## Test builds
 
-Every push to `main` runs `.github/workflows/test-apk.yml`, which builds a release APK on GitHub and publishes it as
-the `test-build` pre-release (replacing the previous one). It is signed with the debug key, so use it for testing and
-sharing with testers only — Play Store builds come from EAS.
+Every push to `main` runs `.github/workflows/test-apk.yml`:
+
+1. builds the release APK for phones (arm64) and for the emulator (x86_64),
+2. installs the emulator build on an Android 14 emulator and clicks through first launch with
+   `scripts/android-smoke-test.sh` (welcome question → plan → day view → shared-trip link), failing on any crash,
+3. only then publishes the phone APK as the `test-build` pre-release, replacing the previous one.
+
+Screenshots of each smoke-test step are attached to the workflow run. The same script works against a phone
+plugged in over USB: `scripts/android-smoke-test.sh path/to/app.apk`. Test builds are signed with the debug key —
+for testers only; Play Store builds come from EAS.
 
 ## Smoke test (5 minutes, real Android phone)
 
