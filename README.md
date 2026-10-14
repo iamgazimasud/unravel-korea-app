@@ -7,26 +7,26 @@ Built with Expo SDK 57, Expo Router and TypeScript.
 
 ## What's in v1
 
-| Screen | What it does |
-|---|---|
-| **Onboarding** | Trip length, arrival date, interests, and in-app Seoul Sip signup |
-| **Home** | Trip countdown / "Day 2 of 5" card, spots picked from your interests, latest guides, latest Seoul Sip, travel essentials (affiliate links) |
-| **Explore** | 32 curated spots, search in English or Korean, categories, saved spots, one-tap "add to day" |
-| **My Trip** | Day-by-day planner: name, start date, length, reorder / move / remove stops, hours per day, **closed-day warnings**, share link |
-| **Today mode** | Next stop, Korean name in big type, directions, **Open in Naver Map / KakaoMap**, taxi card, tick off stops |
-| **Read** | WordPress guides with category filters, search and "Load more"; Seoul Sip posts; both cached for offline reading |
-| **Toolkit** | Korean phrases with audio + full-screen "show staff" mode, emergency numbers, tips, privacy policy |
-| **Shared trips** | `unravelkorea://import?n=…&s=…&d=…` opens a preview so a friend can copy the trip |
+| Screen           | What it does                                                                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Onboarding**   | Trip length, arrival date, interests, and in-app Seoul Sip signup                                                                          |
+| **Home**         | Trip countdown / "Day 2 of 5" card, spots picked from your interests, latest guides, latest Seoul Sip, travel essentials (affiliate links) |
+| **Explore**      | 32 curated spots, search in English or Korean, categories, saved spots, one-tap "add to day"                                               |
+| **My Trip**      | Day-by-day planner: name, start date, length, reorder / move / remove stops, hours per day, **closed-day warnings**, share link            |
+| **Today mode**   | Next stop, Korean name in big type, directions, **Open in Naver Map / KakaoMap**, taxi card, tick off stops                                |
+| **Read**         | WordPress guides with category filters, search and "Load more"; Seoul Sip posts; both cached for offline reading                           |
+| **Toolkit**      | Korean phrases with audio + full-screen "show staff" mode, emergency numbers, tips, privacy policy                                         |
+| **Shared trips** | `unravelkorea://import?n=…&s=…&d=…` opens a preview so a friend can copy the trip                                                          |
 
 Trips are stored on the phone, so everything trip-related works with no signal.
 
 ## How it connects to your sites
 
-| Source | How | Setup needed |
-|---|---|---|
-| **WordPress** (unravelkorea.com) | Public REST API `/wp-json/wp/v2/posts` — posts, featured images, categories, search | None. Category ids for the Read filters are in `src/config.ts` |
-| **beehiiv** (seoulsip.online) — reading | Public sitemap (titles come from post URLs) | Optional: turn on RSS in beehiiv and paste the feed URL into `newsletterRssUrl` for real titles + images |
-| **beehiiv** — signup | App → `server/api/subscribe` (Vercel) → beehiiv API | Deploy `server/` and set `EXPO_PUBLIC_SUBSCRIBE_ENDPOINT` — see [server/README.md](server/README.md). Until then "Subscribe" opens the beehiiv signup page |
+| Source                                  | How                                                                                 | Setup needed                                                                                                                                               |
+| --------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **WordPress** (unravelkorea.com)        | Public REST API `/wp-json/wp/v2/posts` — posts, featured images, categories, search | None. Category ids for the Read filters are in `src/config.ts`                                                                                             |
+| **beehiiv** (seoulsip.online) — reading | Public sitemap (titles come from post URLs)                                         | Optional: turn on RSS in beehiiv and paste the feed URL into `newsletterRssUrl` for real titles + images                                                   |
+| **beehiiv** — signup                    | App → `server/api/subscribe` (Vercel) → beehiiv API                                 | Deploy `server/` and set `EXPO_PUBLIC_SUBSCRIBE_ENDPOINT` — see [server/README.md](server/README.md). Until then "Subscribe" opens the beehiiv signup page |
 
 The beehiiv API key only ever lives on the server, never in the APK.
 
@@ -38,8 +38,22 @@ npx expo start
 ```
 
 Install **Expo Go** from the Play Store and scan the QR code. Code changes show up instantly.
+Requires Node 22.13+ (`.nvmrc`).
 
-Checks before committing: `npm run typecheck` · `npm run lint` · `npx expo-doctor`
+## Quality checks
+
+| Command                           | What it does                                                                                                              |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `npm run check`                   | Everything below, in order — run before every push                                                                        |
+| `npm run typecheck`               | TypeScript (strict)                                                                                                       |
+| `npm run lint`                    | ESLint (Expo config)                                                                                                      |
+| `npm run format` / `format:check` | Prettier                                                                                                                  |
+| `npm test`                        | Jest + React Native Testing Library: trip logic, share links, content parsing, state persistence, signup form, Today mode |
+| `npm run test:server`             | The beehiiv signup function (Node test runner)                                                                            |
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of these plus `expo-doctor` and a
+Hermes Android bundle on every push and pull request. **Actions → Android build** starts an EAS build on
+demand (needs an `EXPO_TOKEN` secret).
 
 ## Build an APK to share with testers
 
@@ -59,6 +73,10 @@ npx eas-cli@latest env:create --name EXPO_PUBLIC_SUBSCRIBE_ENDPOINT \
 For local development, copy `.env.example` to `.env` instead.
 
 ## Publish on Google Play
+
+Store text, graphics, screenshots and the Data safety / content-rating answers are ready in
+[`store/`](store/listing.md). The full release process and smoke test are in
+[`docs/RELEASING.md`](docs/RELEASING.md).
 
 1. Create a Google Play developer account (one-time $25) and a new app named **Unravel Korea**.
 2. `npm run build:android` — builds a signed **.aab**. EAS creates and stores the upload key for you.
@@ -96,6 +114,13 @@ All in [`src/config.ts`](src/config.ts):
 Spot data lives in [`src/data/spots.ts`](src/data/spots.ts) — the same 32 places as the web planner. Hours,
 closed days and prices are approximate; re-check them before publishing.
 
+## Docs
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the app is put together, key decisions, known limitations
+- [`docs/RELEASING.md`](docs/RELEASING.md) — build, submit, smoke test, hotfix, rollback
+- [`store/listing.md`](store/listing.md) — Google Play listing and policy answers
+- [`CHANGELOG.md`](CHANGELOG.md)
+
 ## Project layout
 
 ```
@@ -109,11 +134,15 @@ src/
   components/          UI kit, spot card, add-to-trip sheet, article row, newsletter signup, steppers
   data/                curated spots, phrases, tips
   lib/                 WordPress + beehiiv feeds, offline cache, map deep links, sharing, speech, dates
-  state/app-state.tsx  trip + preferences, persisted on device
+  state/trip-ops.ts    pure trip operations (unit-tested)
+  state/app-state.tsx  trip + preferences, persisted and validated on device
   config.ts            URLs, blog categories, affiliate links
   theme.ts             colors (light/dark), spacing
 plugins/               Expo config plugins (Android map-app queries)
-server/                Vercel function for beehiiv signup
+server/                Vercel function for beehiiv signup (+ tests)
+store/                 Google Play listing text, icon, feature graphic, screenshots
+docs/                  architecture and release guides
+.github/workflows/     CI and on-demand Android builds
 ```
 
 ## Next up (v2 ideas)
