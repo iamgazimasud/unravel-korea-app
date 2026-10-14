@@ -7,6 +7,7 @@ import {
   isClosedOn,
   Spots,
 } from '@/data/spots';
+import { PhotoCredits, SpotImages } from '@/data/spot-photos';
 import { parseISODate } from '@/lib/dates';
 
 describe('spot catalog integrity', () => {
@@ -31,6 +32,21 @@ describe('spot catalog integrity', () => {
     for (const i of s.interests) expect(InterestLabels[i]).toBeDefined();
     for (const d of s.closedDays ?? []) expect(d).toBeGreaterThanOrEqual(0);
     for (const d of s.closedDays ?? []) expect(d).toBeLessThanOrEqual(6);
+  });
+
+  it.each(Spots.map((s) => [s.id] as const))('%s has a bundled photo with a complete licence credit', (id) => {
+    expect(SpotImages[id]).toBeDefined();
+    const credit = PhotoCredits[id];
+    expect(credit.author.trim()).not.toBe('');
+    expect(credit.license).toMatch(/^(CC0|CC BY(-SA)? \d\.\d|KOGL Type \d|Public domain)$/);
+    expect(credit.url).toMatch(/^https:\/\//);
+    expect(credit.alt.length).toBeGreaterThan(10);
+  });
+
+  it('has no photos or credits for spots that no longer exist', () => {
+    const ids = new Set(Spots.map((s) => s.id));
+    expect(Object.keys(SpotImages).filter((k) => !ids.has(k))).toEqual([]);
+    expect(Object.keys(PhotoCredits).filter((k) => !ids.has(k))).toEqual([]);
   });
 });
 

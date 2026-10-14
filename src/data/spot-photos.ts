@@ -1,0 +1,238 @@
+/**
+ * Destination photos (bundled, so they work offline) and their licence credits.
+ * Same images as the Unravel Korea web planner; see the Photo credits screen in the app.
+ * Generated from the planner's credits page — keep in sync when spots change.
+ */
+import type { ImageSourcePropType } from 'react-native';
+
+export type PhotoCredit = { alt: string; author: string; license: string; url: string };
+
+export const SpotImages: Record<string, ImageSourcePropType> = {
+  gyeongbokgung: require('@/assets/spots/gyeongbokgung.webp'),
+  changdeokgung: require('@/assets/spots/changdeokgung.webp'),
+  jongmyo: require('@/assets/spots/jongmyo.webp'),
+  namsangol: require('@/assets/spots/namsangol.webp'),
+  bukchon: require('@/assets/spots/bukchon.webp'),
+  nseoultower: require('@/assets/spots/nseoultower.webp'),
+  insadong: require('@/assets/spots/insadong.webp'),
+  hongdae: require('@/assets/spots/hongdae.webp'),
+  ikseondong: require('@/assets/spots/ikseondong.webp'),
+  yeonnam: require('@/assets/spots/yeonnam.webp'),
+  itaewon: require('@/assets/spots/itaewon.webp'),
+  gwangjang: require('@/assets/spots/gwangjang.webp'),
+  mangwon: require('@/assets/spots/mangwon.webp'),
+  namdaemun: require('@/assets/spots/namdaemun.webp'),
+  ddp: require('@/assets/spots/ddp.webp'),
+  noryangjin: require('@/assets/spots/noryangjin.webp'),
+  myeongdong: require('@/assets/spots/myeongdong.webp'),
+  'hongdae-free-market': require('@/assets/spots/hongdae-free-market.webp'),
+  coex: require('@/assets/spots/coex.webp'),
+  ewha: require('@/assets/spots/ewha.webp'),
+  nami: require('@/assets/spots/nami.webp'),
+  dmz: require('@/assets/spots/dmz.webp'),
+  everland: require('@/assets/spots/everland.webp'),
+  'morning-calm': require('@/assets/spots/morning-calm.webp'),
+  hwaseong: require('@/assets/spots/hwaseong.webp'),
+  'hangang-banpo': require('@/assets/spots/hangang-banpo.webp'),
+  bukhansan: require('@/assets/spots/bukhansan.webp'),
+  kbbq: require('@/assets/spots/kbbq.webp'),
+  'tea-house': require('@/assets/spots/tea-house.webp'),
+  busan: require('@/assets/spots/busan.webp'),
+  jeju: require('@/assets/spots/jeju.webp'),
+  gyeongju: require('@/assets/spots/gyeongju.webp'),
+};
+
+export const PhotoCredits: Record<string, PhotoCredit> = {
+  gyeongbokgung: {
+    alt: 'Gyeongbokgung Palace main hall with mountains behind it',
+    author: '서울관광 아카이브',
+    license: 'KOGL Type 1',
+    url: 'https://commons.wikimedia.org/wiki/File:%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9B%94%EB%8C%80.jpg',
+  },
+  changdeokgung: {
+    alt: 'Changdeokgung Palace pavilion beside a lotus pond',
+    author: '문화재청',
+    license: 'KOGL Type 1',
+    url: 'https://commons.wikimedia.org/wiki/File:%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%A0%84%EA%B2%BD_(2012).jpg',
+  },
+  jongmyo: {
+    alt: 'Long wooden shrine hall of Jongmyo surrounded by trees',
+    author: '문화재청',
+    license: 'KOGL Type 1',
+    url: 'https://commons.wikimedia.org/wiki/File:Jeongjeon,_Jongmyo_(Autumn,_2012).jpg',
+  },
+  namsangol: {
+    alt: 'Traditional hanok rooftops at Namsangol village',
+    author: 'by Koshyk',
+    license: 'CC BY 2.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Korea-Seoul-Namsangol-01.jpg',
+  },
+  bukchon: {
+    alt: 'Narrow alley lined with traditional hanok houses in Bukchon',
+    author: 'Bgag',
+    license: 'CC0',
+    url: 'https://commons.wikimedia.org/wiki/File:Bukchon_Hanok_Village_01.jpg',
+  },
+  nseoultower: {
+    alt: 'N Seoul Tower lit up at dusk on Namsan mountain',
+    author: 'Rtflakfizer',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Namsan_Tower_sunset,_Seoul.jpg',
+  },
+  insadong: {
+    alt: 'Busy pedestrian street in Insadong lined with shops',
+    author: 'S h y numis',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Insa-dong_%EC%9D%B8%EC%82%AC%EB%8F%99_October_1_2020_20.jpg',
+  },
+  hongdae: {
+    alt: 'Neon-lit street in Hongdae at night',
+    author: 'U0894629',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Street_hongdae_Seoul.jpg',
+  },
+  ikseondong: {
+    alt: 'Cafe-lined alley of restored hanok buildings in Ikseon-dong',
+    author: '오모군',
+    license: 'CC BY 3.0',
+    url: 'https://commons.wikimedia.org/wiki/File:View_of_Ikseon-dong_from_National_Tax_Service_Jongno_District_Office.jpg',
+  },
+  yeonnam: {
+    alt: 'Grassy linear park lined with cafes in Yeonnam-dong',
+    author: 'hyoyuni',
+    license: 'CC BY 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:%EC%97%B0%EB%82%A8%EC%98%A5%ED%83%91%EC%97%90%EC%84%9C_%EB%B3%B4%EC%9D%B4%EB%8A%94_%EC%A0%84%EB%A7%9D_1.jpg',
+  },
+  itaewon: {
+    alt: "Hillside street view of Itaewon's restaurants and bars",
+    author: 'kallerna',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Itaewon_2.jpg',
+  },
+  gwangjang: {
+    alt: 'Food stalls with steaming pans inside Gwangjang Market',
+    author: 'Bgag',
+    license: 'CC0',
+    url: 'https://commons.wikimedia.org/wiki/File:Gwangjang_Market,_Seoul_01.jpg',
+  },
+  mangwon: {
+    alt: 'Colorful street food stalls in Mangwon Market',
+    author: 'Korea Tourism Organization, Lee Bumsu',
+    license: 'KOGL Type 1',
+    url: 'https://commons.wikimedia.org/wiki/File:Mangnidan-gil.jpg',
+  },
+  namdaemun: {
+    alt: 'Wide market alley crowded with vendors at Namdaemun',
+    author: 'Seoul Museum of History',
+    license: 'KOGL Type 1',
+    url: 'https://commons.wikimedia.org/wiki/File:%EB%82%A8%EB%8C%80%EB%AC%B8_%EC%A4%91%EC%95%99%EB%A1%9C%EC%9D%98_%EC%9D%B4%EB%8F%99%EC%8B%9D_%EB%85%B8%EC%A0%90.jpg',
+  },
+  ddp: {
+    alt: 'Curved futuristic exterior of the Dongdaemun Design Plaza',
+    author: 'Eugene Lim',
+    license: 'CC BY 2.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Dongdaemun_Design_Plaza_at_night,_Seoul,_Korea.jpg',
+  },
+  noryangjin: {
+    alt: 'Tanks of live seafood at Noryangjin Fisheries Market',
+    author: 'Gaël Chardon',
+    license: 'CC BY-SA 2.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Korea-Seoul-Noryangjin_Fish_Market-03.jpg',
+  },
+  myeongdong: {
+    alt: 'Crowded shopping street in Myeongdong lined with storefronts',
+    author: '서울연구데이터서비스',
+    license: 'KOGL Type 1',
+    url: 'https://commons.wikimedia.org/wiki/File:%EB%AA%85%EB%8F%998%EA%B8%B8_%EA%B1%B0%EB%A6%AC_(2020.03).jpg',
+  },
+  'hongdae-free-market': {
+    alt: 'Craft stalls set up for the Hongdae Free Market',
+    author: 'Hongik University',
+    license: 'Public domain',
+    url: 'https://commons.wikimedia.org/wiki/File:Hongik_emblem.svg',
+  },
+  coex: {
+    alt: 'Towering bookshelves inside the Starfield Library at COEX',
+    author: 'Republic of Korea',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Starfield_Library.jpg',
+  },
+  ewha: {
+    alt: 'Boutique-lined street near Ewha Womans University',
+    author: 'Tlrmq',
+    license: 'CC BY-SA 3.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Ewha_Womans_University_Campus.JPG',
+  },
+  nami: {
+    alt: 'Tall tree-lined avenue on Nami Island',
+    author: 'Unknown',
+    license: 'CC BY-SA 3.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Nami_Island.JPG',
+  },
+  dmz: {
+    alt: 'View north from the Dora Observatory over the Demilitarized Zone',
+    author: 'Abasaa',
+    license: 'Public domain',
+    url: 'https://commons.wikimedia.org/wiki/File:Dora_Observatory_01.JPG',
+  },
+  everland: {
+    alt: 'Rollercoaster and flower gardens at Everland theme park',
+    author: 'Roller Coaster Philosophy, Jeremy Thompson',
+    license: 'Public domain',
+    url: 'https://commons.wikimedia.org/wiki/File:T_Express_Everland_Resort.jpg',
+  },
+  'morning-calm': {
+    alt: 'Colorful lanterns strung through the Garden of Morning Calm',
+    author: 'Clément Chevallier',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Lake_in_the_Garden_of_Morning_Calm.jpg',
+  },
+  hwaseong: {
+    alt: 'Stone fortress wall and gate at Suwon Hwaseong',
+    author: 'Lance Vanlewen',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Hwaseong_Fortress,_Suwon,_Gyeonggi-do,_Republic_of_Korea_(2).jpg',
+  },
+  'hangang-banpo': {
+    alt: 'Sunset over the Han River with the city skyline',
+    author: '서울특별시 소방재난본부(Seoul Metropolitan Fire & Disaster Headquarters)',
+    license: 'Public domain',
+    url: 'https://commons.wikimedia.org/wiki/File:2011%EB%85%84_11%EC%9B%94_%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD_%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C_%EB%AA%85%EC%86%8C_(Seoul_best_attractions)_%EB%8B%AC%EB%B9%9B%EB%AC%B4%EC%A7%80%EA%B0%9C%EB%B6%84%EC%88%981.jpg',
+  },
+  bukhansan: {
+    alt: 'Granite peaks of Bukhansan National Park',
+    author: 'Kellnerp',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Bukhansan_(%EB%B6%81%ED%95%9C%EC%82%B0).jpg',
+  },
+  kbbq: {
+    alt: 'Grilled meat cooking on a Korean BBQ tabletop grill',
+    author: 'kallerna',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Korean_BBQ_Seoul.jpg',
+  },
+  'tea-house': {
+    alt: 'Traditional Korean tea set on a low wooden table',
+    author: 'Korea.net / Korean Culture and Information Service',
+    license: 'CC BY-SA 2.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Green_tea_1.jpg',
+  },
+  busan: {
+    alt: 'Colorful hillside houses of Gamcheon Culture Village in Busan',
+    author: 'Bl00dnFl4mes',
+    license: 'CC BY-SA 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Gamcheon_Houses,_2024.jpg',
+  },
+  jeju: {
+    alt: 'Volcanic coastline of Jeju Island',
+    author: 'Korea.net / Korean Culture and Information Service',
+    license: 'CC BY-SA 2.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Seongsan_Ilchulbong_from_the_air.jpg',
+  },
+  gyeongju: {
+    alt: 'Grassy royal tomb mounds in Gyeongju',
+    author: 'Unknown author',
+    license: 'Public domain',
+    url: 'https://commons.wikimedia.org/wiki/File:Lotus_Flower_Bridge_and_Seven_Treasure_Bridge_at_Bulguksa_in_Gyeongju,_Korea.jpg',
+  },
+};
