@@ -1,36 +1,46 @@
 import { useColorScheme } from 'react-native';
 
-/** Palette drawn from the taegeuk: red #CD2E3A and blue #0047A0 on a warm hanji-paper background. */
+/** Exact colours sampled from the Unravel Korea logo (assets/brand/source). */
+export const Brand = {
+  skyBlue: '#1E8CC8',
+  waveBlue: '#60B8E0',
+  navy: '#283858',
+} as const;
+
+/**
+ * App palette built on the logo. `primary` is the logo blue deepened just enough for white text to
+ * pass WCAG AA (4.9:1); dark mode flips to a lighter blue with dark text (7.9:1).
+ */
 export const Palette = {
   light: {
-    background: '#FAF8F5',
+    background: '#F7FAFD',
     surface: '#FFFFFF',
-    surfaceAlt: '#F2EEE8',
-    border: '#E7E2DA',
-    text: '#1A1F2B',
-    textMuted: '#6B7280',
-    primary: '#CD2E3A',
-    primarySoft: '#FBE9EA',
+    surfaceAlt: '#EEF3F9',
+    border: '#DDE5EF',
+    text: '#17213A',
+    textMuted: '#5B6578',
+    primary: '#1677B3',
+    primarySoft: '#E2F0FA',
     onPrimary: '#FFFFFF',
-    accent: '#0047A0',
-    accentSoft: '#E6EEF8',
+    accent: Brand.navy,
+    accentSoft: '#E7ECF5',
     success: '#1F8A5B',
     successSoft: '#E3F4EC',
     warning: '#B45309',
     warningSoft: '#FEF3C7',
   },
   dark: {
-    background: '#0F1115',
-    surface: '#181B21',
-    surfaceAlt: '#20242C',
-    border: '#2A2F38',
-    text: '#F3F4F6',
-    textMuted: '#9CA3AF',
-    primary: '#EF4B57',
-    primarySoft: '#3A1A1D',
-    onPrimary: '#FFFFFF',
-    accent: '#6AA5F2',
-    accentSoft: '#16243A',
+    background: '#0E1520',
+    surface: '#151E2C',
+    surfaceAlt: '#1D2838',
+    border: '#283548',
+    text: '#EEF3F9',
+    textMuted: '#9AA8BC',
+    primary: '#5DB3EA',
+    primarySoft: '#132C42',
+    onPrimary: '#0E1520',
+    accent: '#9DB4DA',
+    accentSoft: '#1A2436',
     success: '#34D399',
     successSoft: '#11291F',
     warning: '#FBBF24',

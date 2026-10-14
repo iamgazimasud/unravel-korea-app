@@ -84,6 +84,7 @@ export function Screen({
   title,
   subtitle,
   right,
+  above,
   children,
   scroll = true,
   refreshControl,
@@ -92,6 +93,8 @@ export function Screen({
   title?: string;
   subtitle?: string;
   right?: ReactNode;
+  /** Rendered above the title, e.g. the brand logo. */
+  above?: ReactNode;
   children: ReactNode;
   scroll?: boolean;
   refreshControl?: ReactElement<RefreshControlProps>;
@@ -100,6 +103,7 @@ export function Screen({
   const c = useColors();
   const header = title ? (
     <View style={styles.header}>
+      {above ? <View style={styles.above}>{above}</View> : null}
       <View style={{ flex: 1 }}>
         <T variant="display">{title}</T>
         {subtitle ? (
@@ -392,11 +396,13 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'flex-start',
     gap: Space.md,
     marginBottom: Space.lg,
     marginTop: Space.sm,
   },
+  above: { width: '100%', marginBottom: Space.md },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',

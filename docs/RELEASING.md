@@ -23,6 +23,13 @@
    for production.
 7. Tag the commit: `git tag v1.1.0 && git push --tags`.
 
+## Environment variables and caching
+
+`EXPO_PUBLIC_*` values (like `EXPO_PUBLIC_SUBSCRIBE_ENDPOINT`) are inlined into the JavaScript at
+build time, and Metro caches the result. EAS cloud builds always start clean, but for any **local**
+export or Gradle build after changing one of these values, clear the cache first:
+`npx expo export --clear` / `npx expo start --clear`, or delete `$TMPDIR/metro-*` before `./gradlew`.
+
 ## Smoke test (5 minutes, real Android phone)
 
 - [ ] Fresh install → onboarding → Home shows the countdown card.
@@ -30,7 +37,7 @@
 - [ ] Reorder, move to another day, remove a stop.
 - [ ] Today mode → **Naver Map** opens the app (or the website if not installed); **Taxi** card shows Korean.
 - [ ] Toolkit → play a phrase (Korean voice prompt appears if the voice isn't installed).
-- [ ] Read → guides load with images; category chips, search and Load more work; links open in a red Custom Tab.
+- [ ] Read → guides load with images; category chips, search and Load more work; links open in a blue Custom Tab.
 - [ ] Seoul Sip → subscribe (or the beehiiv page opens if no endpoint is configured).
 - [ ] Share trip → open the link on a second phone → Use this trip.
 - [ ] Airplane mode → relaunch → trip, Today mode and cached articles still work.

@@ -100,9 +100,22 @@ Version codes are managed by EAS (`appVersionSource: remote`, auto-incremented o
 - Only the `INTERNET` permission is requested (storage / overlay permissions are blocked) → simple data-safety form.
 - `<queries>` for Naver Map and KakaoMap (Android 11+ package visibility) via `plugins/with-android-map-queries.js`;
   if neither app is installed the buttons open the map websites.
-- Links open in a Chrome Custom Tab in brand red.
+- Links open in a Chrome Custom Tab in brand blue.
 - Korean phrase audio checks for a Korean text-to-speech voice and explains how to install one if missing.
 - Adaptive + themed (monochrome) launcher icon, edge-to-edge layout, keyboard resizes the screen.
+
+## Brand
+
+Your logo lives in [`assets/brand/source/`](assets/brand/source) (master copies). Every app icon, the
+Android adaptive/monochrome icon, splash screen, favicon, store icon and in-app logo (with a dark-mode
+version) is generated from it:
+
+```bash
+python3 scripts/generate-brand-assets.py   # needs Pillow + numpy
+```
+
+Colors come from the logo too (`Brand` and `Palette` in [`src/theme.ts`](src/theme.ts)): sky blue
+`#1E8CC8`, navy `#283858`; buttons use `#1677B3` so white text meets WCAG AA contrast.
 
 ## Things to change before launch
 
@@ -141,6 +154,8 @@ src/
 plugins/               Expo config plugins (Android map-app queries)
 server/                Vercel function for beehiiv signup (+ tests)
 store/                 Google Play listing text, icon, feature graphic, screenshots
+scripts/               brand asset generator
+assets/brand/          logo sources + generated in-app logos
 docs/                  architecture and release guides
 .github/workflows/     CI and on-demand Android builds
 ```

@@ -6,6 +6,9 @@ All notable changes to the app. Versions match `version` in `app.json`.
 
 First Android release.
 
+- Unravel Korea brand: N Seoul Tower logo as app icon (adaptive + themed), splash screen (light and
+  dark), in-app logo, and a blue/navy theme taken from the logo with AA-contrast text.
+
 - Day-by-day trip planner with closed-day warnings, reordering and share links.
 - Today mode: next stop, subway directions, Naver Map / KakaoMap, taxi card, tick-off.
 - 32 curated spots with search, categories and saved spots.

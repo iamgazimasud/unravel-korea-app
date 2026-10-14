@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AddToTripSheet } from '@/components/add-to-trip-sheet';
 import { ArticleRow, openLink } from '@/components/article-row';
+import { BrandLogo } from '@/components/brand-logo';
 import { NewsletterSignup } from '@/components/newsletter-signup';
 import { CategoryTile } from '@/components/spot-card';
 import { Card, Icon, Screen, Section, T } from '@/components/ui';
@@ -12,7 +13,7 @@ import { Spots, type Spot } from '@/data/spots';
 import { fetchLatestGuides, fetchNewsletter } from '@/lib/content';
 import { useFeed } from '@/lib/use-feed';
 import { tripPhase, useAppState } from '@/state/app-state';
-import { Radius, Space, useColors } from '@/theme';
+import { Brand, Radius, Space, useColors } from '@/theme';
 
 export default function HomeScreen() {
   const { trip, prefs } = useAppState();
@@ -33,7 +34,7 @@ export default function HomeScreen() {
   }, [trip.days, prefs.interests]);
 
   return (
-    <Screen title="안녕하세요 👋" subtitle="Your Korea trip, all in one place.">
+    <Screen title="안녕하세요 👋" subtitle="Your Korea trip, all in one place." above={<BrandLogo height={34} />}>
       <TripStatusCard />
 
       <Section title="Picked for you" action="See all" onAction={() => router.push('/explore')}>
@@ -152,8 +153,8 @@ function TripStatusCard() {
         onPress={cta.go}
         style={({ pressed }) => [styles.cta, pressed && { opacity: 0.85 }]}
         accessibilityRole="button">
-        <Icon name={cta.icon} size={18} color="#1A1F2B" />
-        <T variant="label" style={{ color: '#1A1F2B' }}>
+        <Icon name={cta.icon} size={18} color={Brand.navy} />
+        <T variant="label" style={{ color: Brand.navy }}>
           {cta.label}
         </T>
       </Pressable>

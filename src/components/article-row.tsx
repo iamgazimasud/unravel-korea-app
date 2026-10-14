@@ -4,13 +4,13 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card, Icon, T } from '@/components/ui';
 import type { Article } from '@/lib/content';
-import { Radius, Space, useColors } from '@/theme';
+import { Palette, Radius, Space, useColors } from '@/theme';
 
 export function openLink(url: string) {
-  // Android: Chrome Custom Tab in brand colors. iOS: in-app Safari sheet.
+  // Android: Chrome Custom Tab in brand blue. iOS: in-app Safari sheet.
   return WebBrowser.openBrowserAsync(url, {
-    toolbarColor: '#CD2E3A',
-    controlsColor: '#FFFFFF',
+    toolbarColor: Palette.light.primary,
+    controlsColor: Palette.light.onPrimary,
     enableBarCollapsing: true,
     showTitle: true,
     presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,

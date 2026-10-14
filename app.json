@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#CD2E3A",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -42,9 +42,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#CD2E3A",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 120
+          "imageWidth": 140,
+          "dark": {
+            "backgroundColor": "#0E1520",
+            "image": "./assets/images/splash-icon.png"
+          }
         }
       ],
       "./plugins/with-android-map-queries"
@@ -54,6 +58,7 @@
       "reactCompiler": true
     },
     "description": "Plan your Korea trip, carry it offline, and read Unravel Korea guides and the Seoul Sip newsletter.",
-    "platforms": ["android", "ios", "web"]
+    "platforms": ["android", "ios", "web"],
+    "backgroundColor": "#F7FAFD"
   }
 }

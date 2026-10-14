@@ -3,7 +3,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Button, Icon, T } from '@/components/ui';
+import { BrandLogo } from '@/components/brand-logo';
+import { Button, T } from '@/components/ui';
 import { Space, useColors } from '@/theme';
 
 /** Shown by Expo Router when a screen throws. Trips are saved on the device, so retrying is safe. */
@@ -16,7 +17,7 @@ export function ErrorScreen({ error, retry }: ErrorBoundaryProps) {
 
   return (
     <View style={[styles.root, { backgroundColor: c.background }]}>
-      <Icon name="warning" size={40} color={c.primary} />
+      <BrandLogo variant="mark" height={96} />
       <T variant="title" style={styles.center}>
         Something went wrong
       </T>

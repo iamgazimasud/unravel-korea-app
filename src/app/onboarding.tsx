@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { BrandLogo } from '@/components/brand-logo';
 import { NewsletterSignup } from '@/components/newsletter-signup';
 import { DateStepper, NumberStepper } from '@/components/steppers';
 import { Button, Chip, Icon, Screen, T } from '@/components/ui';
@@ -30,13 +31,12 @@ export default function OnboardingScreen() {
 
   return (
     <Screen>
-      <View style={[styles.logo, { backgroundColor: c.primary }]}>
-        <T style={styles.logoText}>한</T>
+      <View style={styles.hero}>
+        <BrandLogo variant="stacked" height={190} />
+        <T tone="muted" style={styles.tagline}>
+          Plan your trip, carry it offline, and get around like you&apos;ve been before.
+        </T>
       </View>
-      <T variant="display">Unravel Korea</T>
-      <T tone="muted" style={{ marginTop: Space.xs }}>
-        Plan your trip, carry it offline, and get around like you&apos;ve been before.
-      </T>
 
       <Step n={1} title="How long is your trip?">
         <NumberStepper value={dayCount} onChange={setDayCount} unit={['day', 'days']} />
@@ -109,16 +109,8 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 const styles = StyleSheet.create({
-  logo: {
-    width: 64,
-    height: 64,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: Space.xl,
-    marginBottom: Space.lg,
-  },
-  logoText: { color: '#fff', fontSize: 34, fontWeight: '800' },
+  hero: { alignItems: 'center', marginTop: Space.lg, gap: Space.md },
+  tagline: { textAlign: 'center', maxWidth: 320 },
   stepHeader: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, marginBottom: Space.md },
   stepNumber: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm },
