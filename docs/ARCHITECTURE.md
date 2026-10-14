@@ -23,19 +23,20 @@ calls are read-only content feeds and the optional newsletter signup.
 
 ## Modules
 
-| Path                      | Responsibility                                                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `src/app/`                | Screens only. Expo Router turns files into routes; `(tabs)/` is the bottom-tab group.                                          |
-| `src/state/trip-ops.ts`   | **Pure** trip operations (add, move, resize, tick off, sanitize, phase). No React, fully unit-tested.                          |
-| `src/state/app-state.tsx` | React context that holds the trip + preferences, persists them, and validates saved data on load.                              |
-| `src/data/`               | Curated spot catalog and toolkit content. A test enforces catalog integrity (unique, link-safe ids, valid days, Korean names). |
-| `src/lib/content.ts`      | WordPress + beehiiv clients, entity decoding, request timeouts, newsletter signup call.                                        |
-| `src/lib/use-feed.ts`     | Cache-first feed hook: shows the saved copy instantly, refreshes in the background, dedupes parallel requests.                 |
-| `src/lib/share.ts`        | Trip ⇄ share link encoding (`unravelkorea://import?n=&s=&d=`) and plain-text itinerary.                                        |
-| `src/lib/maps.ts`         | Naver Map / KakaoMap deep links with website fallback.                                                                         |
-| `src/components/`         | UI kit (`ui.tsx`) and feature components.                                                                                      |
-| `plugins/`                | Expo config plugins (Android package-visibility `<queries>` for map apps).                                                     |
-| `server/`                 | Vercel serverless function for beehiiv signups — the only place the API key lives.                                             |
+| Path                               | Responsibility                                                                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `src/app/`                         | Screens only. Expo Router turns files into routes; `(tabs)/` is the bottom-tab group.                                          |
+| `src/state/trip-ops.ts`            | **Pure** trip operations (add, move, resize, tick off, sanitize, phase). No React, fully unit-tested.                          |
+| `src/state/app-state.tsx`          | React context that holds the trip + preferences, persists them, and validates saved data on load.                              |
+| `src/data/`                        | Curated spot catalog and toolkit content. A test enforces catalog integrity (unique, link-safe ids, valid days, Korean names). |
+| `src/lib/content.ts`               | WordPress + beehiiv clients, entity decoding, request timeouts, newsletter signup call.                                        |
+| `src/lib/use-feed.ts`              | Cache-first feed hook: shows the saved copy instantly, refreshes in the background, dedupes parallel requests.                 |
+| `src/lib/share.ts`                 | Trip ⇄ share link encoding (`unravelkorea://import?n=&s=&d=`) and plain-text itinerary.                                        |
+| `src/lib/maps.ts`                  | Naver Map / KakaoMap deep links with website fallback.                                                                         |
+| `src/components/`                  | UI kit (`ui.tsx`) and feature components.                                                                                      |
+| `plugins/`                         | Expo config plugins (Android package-visibility `<queries>` for map apps).                                                     |
+| `server/`                          | Vercel serverless function for beehiiv signups — the only place the API key lives.                                             |
+| `scripts/generate-brand-assets.py` | Builds every icon, splash image and in-app logo from `assets/brand/source/`.                                                   |
 
 ## Key decisions
 
