@@ -1,0 +1,64 @@
+name: Test APK
+
+# Builds an installable Android test app on every push to main (or Actions → Test APK → Run workflow)
+# and publishes it on the "test-build" release:
+#   https://github.com/<owner>/<repo>/releases/tag/test-build
+# It is signed with a debug key, so it is for testing only. Google Play builds use EAS (android-build.yml).
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'store/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: test-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+
+      - name: Generate the Android project
+        run: npx expo prebuild --platform android --no-install
+        env:
+          CI: '1'
+
+      # One CPU architecture (all current Android phones) and compressed native libraries keep the
+      # download small. Google Play builds are optimised per device by Play itself.
+      - name: Build the APK
+        working-directory: android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -Pexpo.useLegacyPackaging=true --no-daemon
+
+      - name: Publish it on the test-build release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk unravel-korea-test.apk
+          notes="Test build of commit ${GITHUB_SHA::7} ($(date -u +%Y-%m-%d)).
+
+          **Install on Android:** open this page on your phone, tap **unravel-korea-test.apk**, then open the download and allow installing from this source.
+
+          Signed with a test key — for trying the app, not for Google Play."
+          gh release delete test-build --cleanup-tag --yes || true
+          gh release create test-build unravel-korea-test.apk \
+            --prerelease --target "$GITHUB_SHA" --title "Test build (Android)" --notes "$notes"

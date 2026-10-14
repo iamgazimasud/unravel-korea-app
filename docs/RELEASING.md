@@ -30,6 +30,12 @@ build time, and Metro caches the result. EAS cloud builds always start clean, bu
 export or Gradle build after changing one of these values, clear the cache first:
 `npx expo export --clear` / `npx expo start --clear`, or delete `$TMPDIR/metro-*` before `./gradlew`.
 
+## Test builds
+
+Every push to `main` runs `.github/workflows/test-apk.yml`, which builds a release APK on GitHub and publishes it as
+the `test-build` pre-release (replacing the previous one). It is signed with the debug key, so use it for testing and
+sharing with testers only — Play Store builds come from EAS.
+
 ## Smoke test (5 minutes, real Android phone)
 
 - [ ] Fresh install → welcome → "How long is your trip?" → tap 5 days → My Trip shows 5 titled days with photos.

@@ -31,7 +31,14 @@ Trips and all 32 destination photos are stored on the phone, so everything trip-
 
 The beehiiv API key only ever lives on the server, never in the APK.
 
-## Run it on your Android phone
+## Try it on your Android phone
+
+**Easiest:** download the latest test build from
+[Releases → Test build](https://github.com/iamgazimasud/unravel-korea-app/releases/tag/test-build) on your phone and
+open it (allow installing from your browser when Android asks). It is rebuilt automatically on every change to `main`
+by `.github/workflows/test-apk.yml`.
+
+**For development:**
 
 ```bash
 npm install
