@@ -37,7 +37,7 @@ export async function fetchGuides({ page = 1, search, category }: GuideQuery = {
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (category) url += `&categories=${category}`;
 
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  const res = await fetchWithTimeout(url, { headers: { Accept: 'application/json' } });
   // WordPress answers 400 (rest_post_invalid_page_number) when you page past the end.
   if (res.status === 400 && page > 1) return [];
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
@@ -83,7 +83,7 @@ export async function fetchNewsletter(): Promise<Article[]> {
   return parseSitemap(await getText(`${Config.newsletterUrl}/sitemap.xml`));
 }
 
-function parseRss(xml: string): Article[] {
+export function parseRss(xml: string): Article[] {
   const items = xml.match(/<item>[\s\S]*?<\/item>/g) ?? [];
   return items.slice(0, 40).map((item, i) => {
     const tag = (name: string) =>
@@ -102,7 +102,7 @@ function parseRss(xml: string): Article[] {
   });
 }
 
-function parseSitemap(xml: string): Article[] {
+export function parseSitemap(xml: string): Article[] {
   const entries = xml.match(/<url>[\s\S]*?<\/url>/g) ?? [];
   return entries
     .map((e) => ({
@@ -132,7 +132,7 @@ function titleFromSlug(slug: string): string {
  */
 export async function subscribeToNewsletter(email: string): Promise<boolean> {
   if (!Config.subscribeEndpoint) return false;
-  const res = await fetch(Config.subscribeEndpoint, {
+  const res = await fetchWithTimeout(Config.subscribeEndpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
@@ -173,14 +173,30 @@ export async function writeCache<T>(key: string, data: T): Promise<void> {
 
 // ---------- helpers ----------
 
+/** Requests give up after this long — on a stalled subway connection we'd rather show the cache. */
+export const REQUEST_TIMEOUT_MS = 15_000;
+
+export async function fetchWithTimeout(url: string, init: RequestInit = {}, ms = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (e) {
+    if (controller.signal.aborted) throw new Error('The connection timed out. Check your signal and try again.');
+    throw e instanceof Error ? e : new Error('Network request failed');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  const res = await fetchWithTimeout(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
   return (await res.json()) as T;
 }
 
 async function getText(url: string): Promise<string> {
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
   return res.text();
 }
@@ -212,7 +228,9 @@ export function decodeEntities(s: string): string {
 }
 
 function stripTags(html: string): string {
-  return decodeEntities(html.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+  return decodeEntities(html.replace(/<[^>]+>/g, ' '))
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function truncate(s: string, max: number): string {

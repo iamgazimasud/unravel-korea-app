@@ -57,12 +57,21 @@ export function useFeed<T>(key: string, fetcher: () => Promise<T>): FeedState<T>
 
 type FetchResult<T> = { data: T } | { error: string };
 
-async function fetchAndCache<T>(key: string, fetcher: () => Promise<T>): Promise<FetchResult<T>> {
-  try {
-    const data = await fetcher();
-    await writeCache(key, data);
-    return { data };
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : 'Could not load' };
-  }
+// Screens that mount together (Home and Read) share one request per feed instead of racing.
+const inflight = new Map<string, Promise<FetchResult<unknown>>>();
+
+function fetchAndCache<T>(key: string, fetcher: () => Promise<T>): Promise<FetchResult<T>> {
+  const pending = inflight.get(key);
+  if (pending) return pending as Promise<FetchResult<T>>;
+  const request = (async (): Promise<FetchResult<T>> => {
+    try {
+      const data = await fetcher();
+      await writeCache(key, data);
+      return { data };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : 'Could not load' };
+    }
+  })().finally(() => inflight.delete(key));
+  inflight.set(key, request);
+  return request;
 }

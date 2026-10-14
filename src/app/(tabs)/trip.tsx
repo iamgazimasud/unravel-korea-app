@@ -19,16 +19,17 @@ type StopRef = { day: number; index: number };
 
 export default function TripScreen() {
   const c = useColors();
-  const { trip, setTripName, setStartDate, setDayCount, resetTrip } = useAppState();
+  const { trip, setTripName, setStartDate, setDayCount, clearStops } = useAppState();
   const [actionsFor, setActionsFor] = useState<StopRef | null>(null);
   const stops = trip.days.reduce((n, d) => n + d.length, 0);
   const phase = tripPhase(trip);
 
-  const share = () =>
-    shareText(`${tripToText(trip)}\n\nOpen it in the app: ${tripShareUrl(trip)}`, trip.name);
+  const share = () => shareText(`${tripToText(trip)}\n\nOpen it in the app: ${tripShareUrl(trip)}`, trip.name);
 
   return (
-    <Screen title="My Trip" subtitle={stops ? `${stops} stops · ${trip.days.length} days` : 'Build your day-by-day plan.'}>
+    <Screen
+      title="My Trip"
+      subtitle={stops ? `${stops} stops · ${trip.days.length} days` : 'Build your day-by-day plan.'}>
       <Card style={{ gap: Space.md }}>
         <View>
           <T variant="caption" tone="muted">
@@ -78,7 +79,14 @@ export default function TripScreen() {
       </Card>
 
       <View style={styles.actions}>
-        <Button label="Share" icon="share-social" variant="secondary" style={{ flex: 1 }} onPress={share} disabled={!stops} />
+        <Button
+          label="Share"
+          icon="share-social"
+          variant="secondary"
+          style={{ flex: 1 }}
+          onPress={share}
+          disabled={!stops}
+        />
         <Button
           label="Today mode"
           icon="navigate"
@@ -106,7 +114,8 @@ export default function TripScreen() {
           icon="trash"
           style={{ marginTop: Space.xl }}
           onPress={async () => {
-            if (await confirm('Clear your trip?', 'This removes every stop. Your days and dates stay.', 'Clear')) resetTrip();
+            if (await confirm('Clear your trip?', 'This removes every stop. Your days and dates stay.', 'Clear'))
+              clearStops();
           }}
         />
       ) : null}
@@ -116,7 +125,15 @@ export default function TripScreen() {
   );
 }
 
-function DaySection({ day, ids, onStopActions }: { day: number; ids: string[]; onStopActions: (index: number) => void }) {
+function DaySection({
+  day,
+  ids,
+  onStopActions,
+}: {
+  day: number;
+  ids: string[];
+  onStopActions: (index: number) => void;
+}) {
   const c = useColors();
   const { trip, moveStop } = useAppState();
   const date = dayDate(trip, day);
@@ -158,7 +175,10 @@ function DaySection({ day, ids, onStopActions }: { day: number; ids: string[]; o
             if (!spot) return null;
             const closed = date ? isClosedOn(spot, parseISODate(date)) : false;
             return (
-              <Card key={id} style={styles.stop} onPress={() => router.push({ pathname: '/spot/[id]', params: { id } })}>
+              <Card
+                key={id}
+                style={styles.stop}
+                onPress={() => router.push({ pathname: '/spot/[id]', params: { id } })}>
                 <T variant="label" tone="muted" style={{ width: 18, textAlign: 'center' }}>
                   {index + 1}
                 </T>
@@ -172,7 +192,12 @@ function DaySection({ day, ids, onStopActions }: { day: number; ids: string[]; o
                   {closed ? <Badge tone="warning" icon="alert-circle" label="Closed this day" /> : null}
                 </View>
                 <View style={styles.stopControls}>
-                  <IconButton icon="chevron-up" label="Move up" disabled={index === 0} onPress={() => moveStop(day, index, -1)} />
+                  <IconButton
+                    icon="chevron-up"
+                    label="Move up"
+                    disabled={index === 0}
+                    onPress={() => moveStop(day, index, -1)}
+                  />
                   <IconButton
                     icon="chevron-down"
                     label="Move down"

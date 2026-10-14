@@ -1,27 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { getSpot, type Interest } from '@/data/spots';
-import { addDays, daysBetween, today } from '@/lib/dates';
+import { getSpot, InterestLabels, type Interest } from '@/data/spots';
+import * as ops from '@/state/trip-ops';
+import type { Trip } from '@/state/trip-ops';
 
-export type Trip = {
-  name: string;
-  /** `YYYY-MM-DD`, or null while the traveler hasn't booked dates. */
-  startDate: string | null;
-  /** Spot ids for each day, in visiting order. */
-  days: string[][];
-  /** Stops ticked off in Today mode, as `dayIndex:spotId`. */
-  done: string[];
-};
+export { dayDate, emptyTrip, stopCount, tripPhase, type Trip, type TripPhase } from '@/state/trip-ops';
 
 export type Prefs = {
   onboarded: boolean;
@@ -31,17 +15,10 @@ export type Prefs = {
   subscribed: boolean;
 };
 
+/** Bump `version` and add a migration in `loadState` whenever this shape changes. */
 type PersistedState = { version: 1; trip: Trip; prefs: Prefs };
 
-const STORAGE_KEY = 'unravel-korea/state';
-const MAX_DAYS = 21;
-
-export const emptyTrip = (dayCount = 3): Trip => ({
-  name: 'My Korea trip',
-  startDate: null,
-  days: Array.from({ length: dayCount }, () => []),
-  done: [],
-});
+export const STORAGE_KEY = 'unravel-korea/state';
 
 const defaultPrefs: Prefs = { onboarded: false, interests: [], saved: [], subscribed: false };
 
@@ -58,7 +35,8 @@ type AppState = {
   moveStopToDay: (fromDay: number, index: number, toDay: number) => void;
   toggleDone: (day: number, spotId: string) => void;
   replaceTrip: (trip: Trip) => void;
-  resetTrip: () => void;
+  /** Removes every stop but keeps the trip's name, dates and length. */
+  clearStops: () => void;
   toggleSaved: (spotId: string) => void;
   setSubscribed: () => void;
   completeOnboarding: (input: { interests: Interest[]; dayCount: number; startDate: string | null }) => void;
@@ -68,22 +46,16 @@ const AppStateContext = createContext<AppState | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [trip, setTrip] = useState<Trip>(() => emptyTrip());
+  const [trip, setTrip] = useState<Trip>(() => ops.emptyTrip());
   const [prefs, setPrefs] = useState<Prefs>(defaultPrefs);
   const loaded = useRef(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((raw) => {
-        if (!raw) return;
-        const parsed = JSON.parse(raw) as PersistedState;
-        if (parsed.version === 1) {
-          setTrip(sanitizeTrip(parsed.trip));
-          setPrefs({ ...defaultPrefs, ...parsed.prefs });
-        }
-      })
-      .catch(() => {
-        // Corrupt or unreadable storage: start fresh rather than crash.
+    loadState()
+      .then((saved) => {
+        if (!saved) return;
+        setTrip(saved.trip);
+        setPrefs(saved.prefs);
       })
       .finally(() => {
         loaded.current = true;
@@ -94,56 +66,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!loaded.current) return;
     const state: PersistedState = { version: 1, trip, prefs };
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {
+      // Storage full or unavailable: the in-memory trip keeps working for this session.
+    });
   }, [trip, prefs]);
-
-  const updateDays = useCallback((fn: (days: string[][]) => string[][]) => {
-    setTrip((t) => ({ ...t, days: fn(t.days.map((d) => [...d])) }));
-  }, []);
 
   const value = useMemo<AppState>(
     () => ({
       ready,
       trip,
       prefs,
-      setTripName: (name) => setTrip((t) => ({ ...t, name })),
+      setTripName: (name) => setTrip((t) => ({ ...t, name: name.slice(0, 60) })),
       setStartDate: (startDate) => setTrip((t) => ({ ...t, startDate })),
-      setDayCount: (count) => updateDays((days) => resizeDays(days, count)),
-      addSpot: (day, spotId) =>
-        updateDays((days) => {
-          if (!days[day] || days[day].includes(spotId)) return days;
-          days[day].push(spotId);
-          return days;
-        }),
-      removeStop: (day, index) =>
-        updateDays((days) => {
-          days[day]?.splice(index, 1);
-          return days;
-        }),
-      moveStop: (day, index, delta) =>
-        updateDays((days) => {
-          const list = days[day];
-          const target = index + delta;
-          if (!list || target < 0 || target >= list.length) return days;
-          [list[index], list[target]] = [list[target], list[index]];
-          return days;
-        }),
-      moveStopToDay: (fromDay, index, toDay) =>
-        updateDays((days) => {
-          const [id] = days[fromDay]?.splice(index, 1) ?? [];
-          if (id && days[toDay] && !days[toDay].includes(id)) days[toDay].push(id);
-          return days;
-        }),
-      toggleDone: (day, spotId) =>
-        setTrip((t) => {
-          const key = `${day}:${spotId}`;
-          return {
-            ...t,
-            done: t.done.includes(key) ? t.done.filter((k) => k !== key) : [...t.done, key],
-          };
-        }),
-      replaceTrip: (next) => setTrip(sanitizeTrip(next)),
-      resetTrip: () => setTrip(emptyTrip(trip.days.length)),
+      setDayCount: (count) => setTrip((t) => ops.resizeDays(t, count)),
+      addSpot: (day, spotId) => setTrip((t) => ops.addSpot(t, day, spotId)),
+      removeStop: (day, index) => setTrip((t) => ops.removeStop(t, day, index)),
+      moveStop: (day, index, delta) => setTrip((t) => ops.moveStop(t, day, index, delta)),
+      moveStopToDay: (fromDay, index, toDay) => setTrip((t) => ops.moveStopToDay(t, fromDay, index, toDay)),
+      toggleDone: (day, spotId) => setTrip((t) => ops.toggleDone(t, day, spotId)),
+      replaceTrip: (next) => setTrip(ops.sanitizeTrip(next)),
+      clearStops: () => setTrip(ops.clearStops),
       toggleSaved: (spotId) =>
         setPrefs((p) => ({
           ...p,
@@ -152,10 +94,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setSubscribed: () => setPrefs((p) => ({ ...p, subscribed: true })),
       completeOnboarding: ({ interests, dayCount, startDate }) => {
         setPrefs((p) => ({ ...p, interests, onboarded: true }));
-        setTrip((t) => ({ ...t, startDate, days: resizeDays(t.days, dayCount) }));
+        setTrip((t) => ops.resizeDays({ ...t, startDate }, dayCount));
       },
     }),
-    [ready, trip, prefs, updateDays],
+    [ready, trip, prefs],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
@@ -167,44 +109,27 @@ export function useAppState(): AppState {
   return ctx;
 }
 
-/** Grows or shrinks the trip. Stops on removed days are folded into the new last day, never dropped. */
-function resizeDays(days: string[][], count: number): string[][] {
-  const n = Math.max(1, Math.min(MAX_DAYS, count));
-  if (n >= days.length) return [...days, ...Array.from({ length: n - days.length }, () => [])];
-  const kept = days.slice(0, n);
-  kept[n - 1] = [...new Set([...kept[n - 1], ...days.slice(n).flat()])];
-  return kept;
+/** Reads and validates saved state. Returns null for a first launch or unreadable data. */
+export async function loadState(): Promise<{ trip: Trip; prefs: Prefs } | null> {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PersistedState>;
+    if (parsed.version !== 1) return null;
+    return { trip: ops.sanitizeTrip(parsed.trip), prefs: sanitizePrefs(parsed.prefs) };
+  } catch {
+    // Corrupt storage: start fresh rather than crash.
+    return null;
+  }
 }
 
-/** Drops unknown spot ids (e.g. a spot removed in a later app version) and clamps the day count. */
-function sanitizeTrip(trip: Trip): Trip {
-  const days = (Array.isArray(trip.days) ? trip.days : [])
-    .slice(0, MAX_DAYS)
-    .map((d) => (Array.isArray(d) ? d.filter((id) => typeof id === 'string' && getSpot(id)) : []));
+function sanitizePrefs(input: unknown): Prefs {
+  const raw = (input ?? {}) as Partial<Record<keyof Prefs, unknown>>;
+  const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
   return {
-    name: typeof trip.name === 'string' && trip.name.trim() ? trip.name : 'My Korea trip',
-    startDate: typeof trip.startDate === 'string' ? trip.startDate : null,
-    days: days.length ? days : [[]],
-    done: Array.isArray(trip.done) ? trip.done : [],
+    onboarded: raw.onboarded === true,
+    interests: strings(raw.interests).filter((i): i is Interest => i in InterestLabels),
+    saved: strings(raw.saved).filter((id) => !!getSpot(id)),
+    subscribed: raw.subscribed === true,
   };
-}
-
-export function dayDate(trip: Trip, dayIndex: number): string | null {
-  return trip.startDate ? addDays(trip.startDate, dayIndex) : null;
-}
-
-export type TripPhase =
-  | { kind: 'empty' }
-  | { kind: 'undated' }
-  | { kind: 'upcoming'; daysToGo: number }
-  | { kind: 'during'; dayIndex: number }
-  | { kind: 'past' };
-
-export function tripPhase(trip: Trip): TripPhase {
-  const stops = trip.days.reduce((n, d) => n + d.length, 0);
-  if (!trip.startDate) return stops ? { kind: 'undated' } : { kind: 'empty' };
-  const offset = daysBetween(trip.startDate, today());
-  if (offset < 0) return { kind: 'upcoming', daysToGo: -offset };
-  if (offset < trip.days.length) return { kind: 'during', dayIndex: offset };
-  return { kind: 'past' };
 }

@@ -1,8 +1,8 @@
 import * as Linking from 'expo-linking';
 
 import { getSpot } from '@/data/spots';
-import { dayDate, type Trip } from '@/state/app-state';
-import { formatDate, isValidISODate } from '@/lib/dates';
+import { formatDate } from '@/lib/dates';
+import { dayDate, sanitizeTrip, stopCount, type Trip } from '@/state/trip-ops';
 
 /**
  * Trips are shared as a compact, human-readable link — no server needed:
@@ -20,17 +20,13 @@ export function tripShareUrl(trip: Trip): string {
 
 export function decodeSharedTrip(params: { n?: string; s?: string; d?: string }): Trip | null {
   if (typeof params.d !== 'string') return null;
-  const days = params.d
-    .split('~')
-    .slice(0, 21)
-    .map((day) => day.split('.').filter((id) => id && getSpot(id)));
-  if (!days.some((d) => d.length)) return null;
-  return {
-    name: (params.n ?? 'Shared trip').slice(0, 60),
-    startDate: params.s && isValidISODate(params.s) ? params.s : null,
-    days,
+  const trip = sanitizeTrip({
+    name: params.n || 'Shared trip',
+    startDate: params.s ?? null,
+    days: params.d.split('~').map((day) => day.split('.')),
     done: [],
-  };
+  });
+  return stopCount(trip) ? trip : null;
 }
 
 /** Plain-text version for people who don't have the app (WhatsApp, KakaoTalk, notes...). */

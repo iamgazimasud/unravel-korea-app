@@ -5,10 +5,13 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ErrorScreen } from '@/components/error-screen';
 import { AppStateProvider, useAppState } from '@/state/app-state';
 import { Palette } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
+
+export { ErrorScreen as ErrorBoundary };
 
 function HideSplashWhenReady() {
   const { ready } = useAppState();
@@ -24,7 +27,14 @@ export default function RootLayout() {
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
   const navTheme = {
     ...base,
-    colors: { ...base.colors, primary: p.primary, background: p.background, card: p.background, text: p.text, border: p.border },
+    colors: {
+      ...base.colors,
+      primary: p.primary,
+      background: p.background,
+      card: p.background,
+      text: p.text,
+      border: p.border,
+    },
   };
 
   return (
