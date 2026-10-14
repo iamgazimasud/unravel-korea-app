@@ -42,6 +42,8 @@ calls are read-only content feeds and the optional newsletter signup.
 
 - **Design: "Seoul Blue".** Every screen opens with the navy → sky-blue gradient header and the
   logo's wave (`BrandHeader`); the status bar is always light. Colors and fonts live in `src/theme.ts`.
+- **Launch sequence.** The native splash stays up until saved state and fonts are loaded, then
+  `WelcomeOverlay` starts from the identical mark (size/colours locked to `app.json` by a test).
 - **Photos are bundled** (≈1.8 MB WebP) so the app looks right offline; their CC/KOGL licences
   require the in-app Photo credits screen.
 - **Web is a client-only preview** (`web.output: "single"`). Server pre-rendering caused light/dark

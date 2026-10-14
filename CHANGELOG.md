@@ -6,6 +6,10 @@ All notable changes to the app. Versions match `version` in `app.json`.
 
 First Android release.
 
+- Branded launch: the native splash shows the N Seoul Tower mark (sized for Android 12+'s circular
+  splash mask), then a ~1.5s welcome continues from it — the tower lifts, the wordmark and tagline
+  fade in, and it dissolves into the app. Tap to skip; skipped entirely with Reduce motion.
+
 - "Seoul Blue" design: navy-to-blue headers with the logo's wave on every screen, Plus Jakarta Sans,
   brand-blue buttons/chips, and photos everywhere — 32 bundled destination photos (offline) with a
   Photo credits screen for their free licences. The trip planner's per-stop buttons are replaced by

@@ -7,11 +7,12 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ErrorScreen } from '@/components/error-screen';
+import { WelcomeOverlay } from '@/components/welcome-overlay';
 import { AppStateProvider, useAppState } from '@/state/app-state';
 import { Fonts, Palette } from '@/theme';
 
@@ -19,12 +20,18 @@ SplashScreen.preventAutoHideAsync();
 
 export { ErrorScreen as ErrorBoundary };
 
-function HideSplashWhenReady({ fontsReady }: { fontsReady: boolean }) {
+/**
+ * Keeps the native splash up until saved state and fonts are loaded, then hands over to the
+ * animated welcome, which starts from the same tower mark so the transition is seamless.
+ */
+function LaunchSequence({ fontsReady }: { fontsReady: boolean }) {
   const { ready } = useAppState();
+  const appReady = ready && fontsReady;
+  const [welcomeDone, setWelcomeDone] = useState(false);
   useEffect(() => {
-    if (ready && fontsReady) SplashScreen.hideAsync();
-  }, [ready, fontsReady]);
-  return null;
+    if (appReady) SplashScreen.hideAsync();
+  }, [appReady]);
+  return welcomeDone ? null : <WelcomeOverlay start={appReady} onDone={() => setWelcomeDone(true)} />;
 }
 
 export default function RootLayout() {
@@ -55,7 +62,6 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AppStateProvider>
         <ThemeProvider value={navTheme}>
-          <HideSplashWhenReady fontsReady={fontsLoaded || !!fontError} />
           {/* Every screen starts with the navy/blue brand header, so the status bar is always light. */}
           <StatusBar style="light" />
           <Stack screenOptions={{ headerShown: false }}>
@@ -66,6 +72,7 @@ export default function RootLayout() {
             <Stack.Screen name="import" options={{ presentation: 'modal' }} />
             <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
           </Stack>
+          <LaunchSequence fontsReady={fontsLoaded || !!fontError} />
         </ThemeProvider>
       </AppStateProvider>
     </SafeAreaProvider>
