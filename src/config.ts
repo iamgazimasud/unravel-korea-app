@@ -29,13 +29,6 @@ export const Config = {
   /** Required by Google Play for the store listing and in-app. */
   privacyPolicyUrl: 'https://unravelkorea.com/privacy-policy/',
 
-  /** WordPress category ids shown as filters in the Read tab (from /wp-json/wp/v2/categories). */
-  blogCategories: [
-    { id: 21, label: 'Travel & Destinations' },
-    { id: 25, label: 'Korean Food' },
-    { id: 23, label: 'Reviews' },
-  ],
-
   /** The existing web planner, used as a fallback when sharing to people without the app. */
   webPlannerUrl: 'https://unravel-korea-tools.vercel.app',
 
@@ -54,7 +47,7 @@ export type Essential = {
   url: string;
 };
 
-/** Travel essentials shown on Home — the main affiliate surface. */
+/** "Before you fly" tiles on My Trip — the main affiliate surface. */
 export const Essentials: Essential[] = [
   {
     id: 'esim',

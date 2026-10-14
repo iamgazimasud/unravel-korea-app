@@ -5,23 +5,25 @@ import TodayScreen from '@/app/today';
 import { addDays, today } from '@/lib/dates';
 import { AppStateProvider, STORAGE_KEY } from '@/state/app-state';
 
-jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }));
+const mockParams: { day?: string } = {};
+jest.mock('expo-router', () => ({
+  router: { push: jest.fn(), back: jest.fn() },
+  useLocalSearchParams: () => mockParams,
+}));
 
-async function seed(startDate: string, days: string[][], done: string[] = []) {
+beforeEach(() => {
+  delete mockParams.day;
+});
+
+async function seed(startDate: string, days: string[][], done: string[] = [], dayTitles: string[] = []) {
   await AsyncStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
       version: 1,
-      trip: { name: 'Test', startDate, days, done },
-      prefs: { onboarded: true, interests: [], saved: [], subscribed: false },
+      trip: { name: 'Test', startDate, days, dayTitles, done },
+      prefs: { onboarded: true, subscribed: false },
     }),
   );
-}
-
-/** The day chip that is currently selected. */
-async function selectedDay() {
-  const [chip] = (await screen.findAllByRole('button')).filter((b) => b.props.accessibilityState?.selected);
-  return chip;
 }
 
 async function renderToday() {
@@ -32,14 +34,30 @@ async function renderToday() {
   );
 }
 
-describe('Today mode', () => {
+describe('Day screen', () => {
   // Regression: opening Today as the first screen used to show Day 1, because the day was picked
   // before the saved trip finished loading.
   it("opens on today's day of the trip on a cold start", async () => {
-    await seed(addDays(today(), -1), [['gyeongbokgung'], ['myeongdong', 'bukchon'], []]);
+    await seed(addDays(today(), -1), [['gyeongbokgung'], ['myeongdong', 'bukchon'], []], [], ['', 'Modern Seoul', '']);
     await renderToday();
-    expect(await selectedDay()).toHaveTextContent('Day 2 · today');
+    expect(await screen.findByText('TODAY · DAY 2 OF 3')).toBeTruthy();
+    expect(screen.getByText('Modern Seoul')).toBeTruthy();
     expect(screen.getByText('명동')).toBeTruthy(); // next up, in large Korean type
+  });
+
+  it('opens the day it was asked for', async () => {
+    mockParams.day = '1';
+    await seed(addDays(today(), 10), [['bukchon'], ['myeongdong']]);
+    await renderToday();
+    expect(await screen.findByText('DAY 2 OF 2')).toBeTruthy();
+    expect(screen.getByText('Day 2')).toBeTruthy(); // untitled day
+  });
+
+  it('copes with a day number that no longer exists', async () => {
+    mockParams.day = '9';
+    await seed(addDays(today(), 10), [['bukchon'], ['myeongdong']]);
+    await renderToday();
+    expect(await screen.findByText('DAY 2 OF 2')).toBeTruthy();
   });
 
   it('skips stops already ticked off', async () => {
@@ -53,7 +71,7 @@ describe('Today mode', () => {
   it('starts on Day 1 before the trip begins', async () => {
     await seed(addDays(today(), 10), [['bukchon'], ['myeongdong']]);
     await renderToday();
-    expect(await selectedDay()).toHaveTextContent('Day 1');
-    expect(screen.queryByText(/· today/)).toBeNull();
+    expect(await screen.findByText('DAY 1 OF 2')).toBeTruthy();
+    expect(screen.queryByText(/TODAY/)).toBeNull();
   });
 });

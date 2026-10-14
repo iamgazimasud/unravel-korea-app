@@ -1,97 +1,92 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { AddToTripSheet } from '@/components/add-to-trip-sheet';
-import { ArticleRow, openLink } from '@/components/article-row';
-import { NewsletterSignup } from '@/components/newsletter-signup';
-import { PhotoCard } from '@/components/spot-card';
-import { BrandHeader, Card, HeaderPill, Icon, IconCircle, Screen, Section, T } from '@/components/ui';
+import { openLink } from '@/components/article-row';
+import { PlanCard } from '@/components/plan-card';
+import { SpotPhoto } from '@/components/spot-card';
+import { TripSettingsSheet } from '@/components/trip-settings-sheet';
+import {
+  Badge,
+  BrandHeader,
+  Button,
+  Card,
+  HeaderButton,
+  HeaderPill,
+  Icon,
+  IconCircle,
+  Screen,
+  Section,
+  T,
+} from '@/components/ui';
 import { Essentials } from '@/config';
-import { getSpot, Spots, type Spot } from '@/data/spots';
-import { fetchLatestGuides, fetchNewsletter } from '@/lib/content';
-import { useFeed } from '@/lib/use-feed';
-import { doneKey, stopCount, tripPhase, useAppState, type Trip } from '@/state/app-state';
-import { ScreenPadding, Space } from '@/theme';
+import { Plans } from '@/data/plans';
+import { getSpot, isClosedOn, Spots, type Spot } from '@/data/spots';
+import { addDays, formatDate, parseISODate } from '@/lib/dates';
+import { confirm } from '@/lib/platform';
+import {
+  dayDate,
+  dayTitle,
+  doneKey,
+  stopCount,
+  tripPhase,
+  useAppState,
+  type Trip,
+  type TripPhase,
+} from '@/state/app-state';
+import { Radius, Space, useColors } from '@/theme';
 
-export default function HomeScreen() {
-  const { trip, prefs } = useAppState();
-  const [adding, setAdding] = useState<Spot | null>(null);
-  const guides = useFeed('guides', fetchLatestGuides);
-  const newsletter = useFeed('newsletter', fetchNewsletter);
+const PHOTO_SLOTS = 4;
 
-  const picks = useMemo(() => {
-    const planned = new Set(trip.days.flat());
-    const scored = Spots.filter((s) => !planned.has(s.id)).map((s) => ({
-      spot: s,
-      score: s.interests.filter((i) => prefs.interests.includes(i)).length,
-    }));
-    return scored
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 8)
-      .map((x) => x.spot);
-  }, [trip.days, prefs.interests]);
+const openDay = (day: number) => router.push({ pathname: '/today', params: { day: String(day) } });
+
+export default function MyTripScreen() {
+  const { trip, prefs, startPlan } = useAppState();
+  const [settings, setSettings] = useState(false);
+  const phase = tripPhase(trip);
+  const hasPlan = stopCount(trip) > 0;
 
   return (
-    <Screen header={<TripHeader trip={trip} />}>
-      <Section title="Picked for you" action="See all" onAction={() => router.push('/explore')}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginHorizontal: -ScreenPadding }}
-          contentContainerStyle={{ gap: Space.md, paddingHorizontal: ScreenPadding }}>
-          {picks.map((s) => (
-            <PhotoCard key={s.id} spot={s} onAdd={() => setAdding(s)} />
-          ))}
-        </ScrollView>
-      </Section>
-
-      <Section title="Latest guides" action="More" onAction={() => router.push('/read')}>
-        <View style={{ gap: Space.sm }}>
-          {(guides.data ?? []).slice(0, 3).map((a) => (
-            <ArticleRow key={a.id} article={a} />
-          ))}
-          {!guides.data && guides.error ? <T tone="muted">Guides need a connection the first time.</T> : null}
-        </View>
-      </Section>
-
-      <Card tone="navy" style={styles.sip}>
-        <View style={styles.sipHead}>
-          <IconCircle name="cafe" size={40} />
-          <View style={{ flex: 1 }}>
-            <T variant="title" tone="inverse">
-              Seoul Sip
-            </T>
-            <T tone="inverse" style={{ opacity: 0.85 }}>
-              What&apos;s happening in Korea, in 5 minutes. Free, weekly.
-            </T>
+    <Screen header={<TripHeader trip={trip} phase={phase} onSettings={() => setSettings(true)} />}>
+      {hasPlan ? (
+        <Section title="Your days" action="Add places" onAction={() => router.push('/explore')}>
+          <View style={{ gap: Space.md }}>
+            {trip.days.map((ids, i) => (
+              <DayCard
+                key={i}
+                trip={trip}
+                day={i}
+                ids={ids}
+                isToday={phase.kind === 'during' && phase.dayIndex === i}
+              />
+            ))}
           </View>
-        </View>
-        {(newsletter.data ?? []).slice(0, 2).map((a) => (
-          <Pressable key={a.id} onPress={() => openLink(a.url)} style={styles.sipRow} accessibilityRole="link">
-            <T variant="label" tone="inverse" numberOfLines={1} style={{ flex: 1 }}>
-              {a.title}
-            </T>
-            <Icon name="arrow-forward" size={16} color="#FFFFFF" />
-          </Pressable>
-        ))}
-        <View style={{ marginTop: Space.md }}>
-          <NewsletterSignup onDark />
-        </View>
-      </Card>
+        </Section>
+      ) : (
+        <Section title="How long is your trip?">
+          <View style={{ gap: Space.md }}>
+            {Plans.map((p) => (
+              <PlanCard key={p.id} plan={p} onPress={() => startPlan(p.id)} />
+            ))}
+          </View>
+          <Button
+            label={`Or build your own from ${Spots.length} places`}
+            icon="compass"
+            variant="ghost"
+            style={{ marginTop: Space.sm }}
+            onPress={() => router.push('/explore')}
+          />
+        </Section>
+      )}
 
       <Section title="Before you fly">
-        <View style={{ gap: Space.sm }}>
+        <View style={styles.tiles}>
           {Essentials.map((e) => (
-            <Card key={e.id} onPress={() => openLink(e.url)} style={styles.essential} accessibilityLabel={e.title}>
-              <IconCircle name={e.icon} />
-              <View style={{ flex: 1 }}>
-                <T variant="heading">{e.title}</T>
-                <T variant="caption" tone="muted">
-                  {e.subtitle}
-                </T>
-              </View>
-              <Icon name="chevron-forward" size={18} />
+            <Card key={e.id} onPress={() => openLink(e.url)} style={styles.tile} accessibilityLabel={e.title}>
+              <IconCircle name={e.icon} size={38} />
+              <T variant="label" numberOfLines={2}>
+                {e.title}
+              </T>
             </Card>
           ))}
         </View>
@@ -100,80 +95,169 @@ export default function HomeScreen() {
         </T>
       </Section>
 
-      <AddToTripSheet spot={adding} onClose={() => setAdding(null)} />
+      {!prefs.subscribed ? (
+        <Card tone="navy" onPress={() => router.push('/read')} style={styles.sip} accessibilityLabel="Seoul Sip">
+          <IconCircle name="cafe" size={44} />
+          <View style={{ flex: 1 }}>
+            <T variant="heading" tone="inverse">
+              Get Seoul Sip ☕
+            </T>
+            <T variant="caption" tone="inverse" style={{ opacity: 0.85 }}>
+              What&apos;s happening in Korea, in 5 minutes. Free every week.
+            </T>
+          </View>
+          <Icon name="arrow-forward" size={20} color="#FFFFFF" />
+        </Card>
+      ) : null}
+
+      <TripSettingsSheet visible={settings} onClose={() => setSettings(false)} />
     </Screen>
   );
 }
 
-/** The trip status lives inside the blue brand header. */
-function TripHeader({ trip }: { trip: Trip }) {
-  const phase = tripPhase(trip);
+/** One line about where you are in the trip, plus the single most useful next action. */
+function TripHeader({ trip, phase, onSettings }: { trip: Trip; phase: TripPhase; onSettings: () => void }) {
+  const { clearStops, setStartDate } = useAppState();
   const stops = stopCount(trip);
+  const places = `${trip.days.length} days · ${stops} places`;
+  const settings = stops ? <HeaderButton icon="options" label="Trip settings" onPress={onSettings} /> : undefined;
 
   switch (phase.kind) {
     case 'empty':
       return (
         <BrandHeader
           logo
+          right={settings}
           eyebrow="안녕하세요 👋"
           title="Plan your Korea trip"
-          subtitle="Pick places, drop them on days, and carry the plan offline.">
-          <HeaderPill label="Start planning" icon="compass" onPress={() => router.push('/explore')} />
-        </BrandHeader>
+          subtitle="Pick a ready-made plan from our Seoul guide. You can change anything later."
+        />
       );
     case 'undated':
       return (
-        <BrandHeader
-          logo
-          eyebrow="YOUR TRIP"
-          title={trip.name}
-          subtitle={`${stops} stops over ${trip.days.length} days · add dates for closed-day warnings`}>
-          <HeaderPill label="Open my trip" icon="calendar" onPress={() => router.push('/trip')} />
+        <BrandHeader logo right={settings} eyebrow="YOUR TRIP" title={trip.name} subtitle={places}>
+          <HeaderPill label="When do you land?" icon="calendar" onPress={onSettings} />
         </BrandHeader>
       );
-    case 'upcoming':
+    case 'upcoming': {
+      const range = `${formatDate(trip.startDate!)} – ${formatDate(addDays(trip.startDate!, trip.days.length - 1))}`;
       return (
         <BrandHeader
           logo
-          eyebrow={`COUNTDOWN · ${trip.name.toUpperCase()}`}
+          right={settings}
+          eyebrow={trip.name.toUpperCase()}
           title={phase.daysToGo === 1 ? 'Tomorrow! 🎉' : `${phase.daysToGo} days to go`}
-          subtitle={`${stops} stops planned over ${trip.days.length} days.`}>
-          <HeaderPill label="Review my trip" icon="calendar" onPress={() => router.push('/trip')} />
-        </BrandHeader>
+          subtitle={`${range} · ${stops} places`}
+        />
       );
+    }
     case 'during': {
-      const today = trip.days[phase.dayIndex] ?? [];
-      const nextId = today.find((id) => !trip.done.includes(doneKey(phase.dayIndex, id)));
+      const ids = trip.days[phase.dayIndex] ?? [];
+      const nextId = ids.find((id) => !trip.done.includes(doneKey(phase.dayIndex, id)));
       const next = nextId ? getSpot(nextId) : undefined;
       return (
         <BrandHeader
           logo
-          eyebrow={`DAY ${phase.dayIndex + 1} OF ${trip.days.length}`}
-          title={today.length ? `${today.length} stop${today.length > 1 ? 's' : ''} today` : 'A free day today'}
-          subtitle={next ? `Next: ${next.name} · ${next.nameKo}` : today.length ? 'All done for today 🎉' : undefined}>
-          <HeaderPill label="Open Today mode" icon="navigate" onPress={() => router.push('/today')} />
+          right={settings}
+          eyebrow={`TODAY · DAY ${phase.dayIndex + 1} OF ${trip.days.length}`}
+          title={dayTitle(trip, phase.dayIndex)}
+          subtitle={next ? `Next: ${next.name}` : ids.length ? 'All done for today 🎉' : 'A free day — enjoy it'}>
+          <HeaderPill label="Open today's plan" icon="navigate" onPress={() => openDay(phase.dayIndex)} />
         </BrandHeader>
       );
     }
     case 'past':
       return (
-        <BrandHeader logo eyebrow="WELCOME BACK" title="Hope Korea was amazing" subtitle="Ready to plan the next one?">
-          <HeaderPill label="Plan another trip" icon="compass" onPress={() => router.push('/trip')} />
+        <BrandHeader logo right={settings} eyebrow="WELCOME BACK" title="Hope Korea was amazing">
+          <HeaderPill
+            label="Plan a new trip"
+            icon="refresh"
+            onPress={async () => {
+              if (await confirm('Plan a new trip?', 'This clears your last trip.', 'Start fresh')) {
+                clearStops();
+                setStartDate(null);
+              }
+            }}
+          />
         </BrandHeader>
       );
   }
 }
 
+/** A day at a glance: theme, date, photos of its places. Tap to open the day. */
+function DayCard({ trip, day, ids, isToday }: { trip: Trip; day: number; ids: string[]; isToday: boolean }) {
+  const c = useColors();
+  const date = dayDate(trip, day);
+  const spots = ids.map(getSpot).filter((s): s is Spot => !!s);
+  const hours = spots.reduce((h, s) => h + s.duration, 0);
+  const closed = date ? spots.filter((s) => isClosedOn(s, parseISODate(date))).length : 0;
+  const done = spots.filter((s) => trip.done.includes(doneKey(day, s.id))).length;
+  const title = dayTitle(trip, day);
+
+  return (
+    <Card
+      onPress={() => openDay(day)}
+      style={[styles.day, isToday && { borderWidth: 2, borderColor: c.primary }]}
+      accessibilityLabel={`Day ${day + 1}: ${title}`}>
+      <View style={styles.dayHead}>
+        <View style={[styles.dayNumber, { backgroundColor: isToday ? c.primary : c.primarySoft }]}>
+          <T variant="heading" style={{ color: isToday ? c.onPrimary : c.primary }}>
+            {day + 1}
+          </T>
+        </View>
+        <View style={{ flex: 1 }}>
+          <T variant="caption" tone="muted">
+            {[isToday ? 'Today' : `Day ${day + 1}`, date ? formatDate(date, { weekday: 'short' }) : null]
+              .filter(Boolean)
+              .join(' · ')}
+          </T>
+          <T variant="heading" numberOfLines={1}>
+            {title}
+          </T>
+        </View>
+        <Icon name="chevron-forward" size={18} color={c.textMuted} />
+      </View>
+
+      {spots.length ? (
+        // Always four equal slots, so every day card lines up: up to 4 photos, or 3 and a "+N" tile.
+        <View style={styles.photos}>
+          {Array.from({ length: PHOTO_SLOTS }, (_, k) => {
+            const overflow = spots.length > PHOTO_SLOTS && k === PHOTO_SLOTS - 1;
+            if (overflow) {
+              return (
+                <View key="more" style={[styles.photo, styles.more, { backgroundColor: c.primarySoft }]}>
+                  <T variant="label" tone="primary">
+                    +{spots.length - k}
+                  </T>
+                </View>
+              );
+            }
+            const s = spots[k];
+            return s ? <SpotPhoto key={s.id} spot={s} style={styles.photo} /> : <View key={k} style={styles.photo} />;
+          })}
+        </View>
+      ) : null}
+
+      <View style={styles.meta}>
+        <T variant="caption" tone="muted">
+          {spots.length ? `${spots.length} places · ~${hours}h` : 'Free day — tap to add places'}
+        </T>
+        {done ? <Badge tone="success" icon="checkmark" label={`${done} done`} /> : null}
+        {closed ? <Badge tone="warning" icon="alert-circle" label={`${closed} closed this day`} /> : null}
+      </View>
+    </Card>
+  );
+}
+
 const styles = StyleSheet.create({
-  sip: { marginTop: Space.xl, gap: Space.sm },
-  sipHead: { flexDirection: 'row', gap: Space.md, alignItems: 'center', marginBottom: Space.xs },
-  sipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.sm,
-    paddingVertical: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255,255,255,0.25)',
-  },
-  essential: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.md },
+  day: { gap: Space.md, padding: Space.md },
+  dayHead: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
+  dayNumber: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  photos: { flexDirection: 'row', gap: 6 },
+  photo: { flex: 1, height: 68, borderRadius: Radius.md },
+  more: { alignItems: 'center', justifyContent: 'center' },
+  meta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Space.sm },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm },
+  tile: { flexBasis: '47%', flexGrow: 1, gap: Space.sm, padding: Space.md },
+  sip: { flexDirection: 'row', alignItems: 'center', gap: Space.md, marginTop: Space.xl },
 });

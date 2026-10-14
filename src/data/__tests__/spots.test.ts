@@ -1,12 +1,4 @@
-import {
-  CategoryIcons,
-  CategoryLabels,
-  closedDaysLabel,
-  getSpot,
-  InterestLabels,
-  isClosedOn,
-  Spots,
-} from '@/data/spots';
+import { CategoryIcons, CategoryLabels, closedDaysLabel, getSpot, isClosedOn, PlaceFilters, Spots } from '@/data/spots';
 import { PhotoCredits, SpotImages } from '@/data/spot-photos';
 import { parseISODate } from '@/lib/dates';
 
@@ -28,8 +20,6 @@ describe('spot catalog integrity', () => {
     expect(s.duration).toBeGreaterThan(0);
     expect(CategoryLabels[s.category]).toBeDefined();
     expect(CategoryIcons[s.category]).toBeDefined();
-    expect(s.interests.length).toBeGreaterThan(0);
-    for (const i of s.interests) expect(InterestLabels[i]).toBeDefined();
     for (const d of s.closedDays ?? []) expect(d).toBeGreaterThanOrEqual(0);
     for (const d of s.closedDays ?? []) expect(d).toBeLessThanOrEqual(6);
   });
@@ -41,6 +31,12 @@ describe('spot catalog integrity', () => {
     expect(credit.license).toMatch(/^(CC0|CC BY(-SA)? \d\.\d|KOGL Type \d|Public domain)$/);
     expect(credit.url).toMatch(/^https:\/\//);
     expect(credit.alt.length).toBeGreaterThan(10);
+  });
+
+  it('puts every spot under exactly one Places filter', () => {
+    for (const s of Spots) {
+      expect(PlaceFilters.filter((f) => f.categories.includes(s.category))).toHaveLength(1);
+    }
   });
 
   it('has no photos or credits for spots that no longer exist', () => {

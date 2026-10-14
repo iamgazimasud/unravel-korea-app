@@ -1,7 +1,9 @@
+import { getPlan, Plans } from '@/data/plans';
 import {
   addSpot,
   clearStops,
   dayDate,
+  dayTitle,
   emptyTrip,
   MAX_DAYS,
   moveStop,
@@ -11,6 +13,7 @@ import {
   sanitizeTrip,
   stopCount,
   toggleDone,
+  tripFromPlan,
   tripPhase,
   type Trip,
 } from '@/state/trip-ops';
@@ -19,6 +22,7 @@ const trip = (days: string[][], extra: Partial<Trip> = {}): Trip => ({
   name: 'Test',
   startDate: null,
   days,
+  dayTitles: days.map(() => ''),
   done: [],
   ...extra,
 });
@@ -27,6 +31,33 @@ describe('emptyTrip', () => {
   it('clamps the day count', () => {
     expect(emptyTrip(0).days).toHaveLength(1);
     expect(emptyTrip(99).days).toHaveLength(MAX_DAYS);
+    expect(emptyTrip(4).dayTitles).toEqual(['', '', '', '']);
+  });
+});
+
+describe('tripFromPlan', () => {
+  it('builds a complete, titled trip from a ready-made plan and keeps the arrival date', () => {
+    const t = tripFromPlan(getPlan('3')!, '2026-11-02');
+    expect(t.name).toBe('3 days in Seoul');
+    expect(t.startDate).toBe('2026-11-02');
+    expect(t.days).toHaveLength(3);
+    expect(t.days[0]).toEqual(['gyeongbokgung', 'bukchon', 'insadong', 'gwangjang']);
+    expect(t.dayTitles).toEqual(['Royal Seoul', 'Modern Seoul', 'Gangnam & the Han River']);
+    expect(t.done).toEqual([]);
+  });
+
+  it.each(Plans.map((p) => [p.id, p] as const))('the %s-day plan survives sanitizing untouched', (_id, plan) => {
+    const t = tripFromPlan(plan);
+    expect(t.days).toEqual(plan.plan.map((d) => d.spots));
+    expect(t.dayTitles).toEqual(plan.plan.map((d) => d.title));
+  });
+});
+
+describe('dayTitle', () => {
+  it('falls back to the day number', () => {
+    const t = trip([[], []], { dayTitles: ['Royal Seoul', ''] });
+    expect(dayTitle(t, 0)).toBe('Royal Seoul');
+    expect(dayTitle(t, 1)).toBe('Day 2');
   });
 });
 
@@ -97,6 +128,12 @@ describe('resizeDays', () => {
     expect(resizeDays(trip([['bukchon']]), 3).days).toEqual([['bukchon'], [], []]);
   });
 
+  it('keeps one title per day', () => {
+    const t = trip([['bukchon'], ['myeongdong'], []], { dayTitles: ['A', 'B', 'C'] });
+    expect(resizeDays(t, 2).dayTitles).toEqual(['A', 'B']);
+    expect(resizeDays(t, 4).dayTitles).toEqual(['A', 'B', 'C', '']);
+  });
+
   it('folds stops from removed days into the new last day instead of dropping them', () => {
     const t = trip([['bukchon'], ['myeongdong'], ['mangwon', 'bukchon']]);
     expect(resizeDays(t, 1).days).toEqual([['bukchon', 'myeongdong', 'mangwon']]);
@@ -110,7 +147,13 @@ describe('resizeDays', () => {
 describe('clearStops', () => {
   it('keeps name, dates and length', () => {
     const t = trip([['bukchon'], ['myeongdong']], { name: 'Seoul', startDate: '2026-11-02', done: ['0:bukchon'] });
-    expect(clearStops(t)).toEqual({ name: 'Seoul', startDate: '2026-11-02', days: [[], []], done: [] });
+    expect(clearStops({ ...t, dayTitles: ['A', 'B'] })).toEqual({
+      name: 'Seoul',
+      startDate: '2026-11-02',
+      days: [[], []],
+      dayTitles: ['', ''],
+      done: [],
+    });
   });
 });
 
@@ -120,9 +163,21 @@ describe('sanitizeTrip', () => {
       name: '   ',
       startDate: '2026-02-30',
       days: [['bukchon', 'bukchon', 'deleted-spot', 42], 'not-a-day'],
+      dayTitles: ['  Royal Seoul  ', 7, 'extra day that does not exist'],
       done: ['0:bukchon', '1:bukchon', 7],
     });
-    expect(t).toEqual({ name: 'My Korea trip', startDate: null, days: [['bukchon'], []], done: ['0:bukchon'] });
+    expect(t).toEqual({
+      name: 'My Korea trip',
+      startDate: null,
+      days: [['bukchon'], []],
+      dayTitles: ['Royal Seoul', ''],
+      done: ['0:bukchon'],
+    });
+  });
+
+  it('gives saves from older versions untitled days', () => {
+    expect(sanitizeTrip({ days: [['bukchon'], []] }).dayTitles).toEqual(['', '']);
+    expect(sanitizeTrip({ days: [[]], dayTitles: ['x'.repeat(100)] }).dayTitles[0]).toHaveLength(40);
   });
 
   it('survives garbage', () => {

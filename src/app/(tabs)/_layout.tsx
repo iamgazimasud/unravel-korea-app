@@ -8,11 +8,10 @@ import { useAppState } from '@/state/app-state';
 import { Fonts, useColors } from '@/theme';
 
 const TabIcons: Record<string, [string, string]> = {
-  index: ['home', 'home-outline'],
+  index: ['calendar', 'calendar-outline'],
   explore: ['compass', 'compass-outline'],
-  trip: ['calendar', 'calendar-outline'],
+  korean: ['chatbubbles', 'chatbubbles-outline'],
   read: ['newspaper', 'newspaper-outline'],
-  toolkit: ['briefcase', 'briefcase-outline'],
 };
 
 export default function TabLayout() {
@@ -56,11 +55,10 @@ export default function TabLayout() {
           );
         },
       })}>
-      <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
-      <Tabs.Screen name="trip" options={{ title: 'My Trip' }} />
+      <Tabs.Screen name="index" options={{ title: 'My Trip' }} />
+      <Tabs.Screen name="explore" options={{ title: 'Places' }} />
+      <Tabs.Screen name="korean" options={{ title: 'Korean' }} />
       <Tabs.Screen name="read" options={{ title: 'Read' }} />
-      <Tabs.Screen name="toolkit" options={{ title: 'Toolkit' }} />
     </Tabs>
   );
 }

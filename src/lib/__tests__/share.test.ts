@@ -10,6 +10,7 @@ const trip: Trip = {
   name: 'Seoul & Busan',
   startDate: '2026-11-02',
   days: [['gyeongbokgung', 'bukchon'], [], ['busan']],
+  dayTitles: ['Royal Seoul', '', 'Busan ~ by the sea'],
   done: ['0:bukchon'],
 };
 
@@ -18,7 +19,18 @@ describe('share links', () => {
     const url = new URL(tripShareUrl(trip));
     const params = Object.fromEntries(url.searchParams.entries());
     expect(params.d).toBe('gyeongbokgung.bukchon~~busan');
-    expect(decodeSharedTrip(params)).toEqual({ ...trip, done: [] });
+    expect(params.t).toBe('Royal Seoul~~Busan - by the sea');
+    expect(decodeSharedTrip(params)).toEqual({
+      ...trip,
+      dayTitles: ['Royal Seoul', '', 'Busan - by the sea'],
+      done: [],
+    });
+  });
+
+  it('omits day titles when there are none, and accepts links without them', () => {
+    const untitled = { ...trip, dayTitles: ['', '', ''] };
+    expect(tripShareUrl(untitled)).not.toContain('t=');
+    expect(decodeSharedTrip({ d: 'bukchon~myeongdong' })?.dayTitles).toEqual(['', '']);
   });
 
   it('omits the date when the trip has none', () => {
@@ -42,7 +54,8 @@ describe('tripToText', () => {
   it('writes a readable itinerary for people without the app', () => {
     const text = tripToText(trip);
     expect(text).toContain('Seoul & Busan');
-    expect(text).toMatch(/Day 1 — Mon, Nov 2/);
+    expect(text).toMatch(/Day 1 — Mon, Nov 2 · Royal Seoul/);
+    expect(text).toMatch(/Day 2 — Tue, Nov 3\n/);
     expect(text).toContain('1. Gyeongbokgung Palace (경복궁)');
     expect(text).toContain('(free day)');
   });

@@ -26,16 +26,26 @@ describe('AppStateProvider', () => {
   it('persists changes and restores them on the next launch', async () => {
     const first = await renderState();
     await act(() => {
-      first.result.current.completeOnboarding({ interests: ['food'], dayCount: 2, startDate: '2026-11-02' });
+      first.result.current.completeOnboarding();
+      first.result.current.setDayCount(2);
+      first.result.current.setStartDate('2026-11-02');
       first.result.current.addSpot(0, 'gwangjang');
-      first.result.current.toggleSaved('mangwon');
     });
     await waitFor(async () => expect((await saved())?.trip.days).toEqual([['gwangjang'], []]));
     await first.unmount();
 
     const second = await renderState();
     expect(second.result.current.trip).toMatchObject({ startDate: '2026-11-02', days: [['gwangjang'], []] });
-    expect(second.result.current.prefs).toMatchObject({ onboarded: true, interests: ['food'], saved: ['mangwon'] });
+    expect(second.result.current.prefs).toEqual({ onboarded: true, subscribed: false });
+  });
+
+  it('starts a ready-made plan and keeps the arrival date', async () => {
+    const { result } = await renderState();
+    await act(() => result.current.setStartDate('2026-11-02'));
+    await act(() => result.current.startPlan('5'));
+    expect(result.current.trip).toMatchObject({ name: '5 days in Seoul', startDate: '2026-11-02' });
+    expect(result.current.trip.days).toHaveLength(5);
+    expect(result.current.trip.dayTitles[3]).toBe('Day trip: Suwon fortress');
   });
 
   it('recovers from corrupt or outdated storage', async () => {
@@ -49,23 +59,28 @@ describe('AppStateProvider', () => {
       JSON.stringify({
         version: 1,
         trip: { name: 'Old', startDate: 'bad', days: [['bukchon', 'removed-spot']], done: [] },
-        prefs: { onboarded: true, interests: ['food', 'astrology'], saved: ['removed-spot'], subscribed: 'yes' },
+        // `interests` and `saved` come from an older version that had those features.
+        prefs: { onboarded: true, interests: ['food'], saved: ['bukchon'], subscribed: 'yes' },
       }),
     );
     const { result } = await renderState();
-    expect(result.current.trip).toMatchObject({ name: 'Old', startDate: null, days: [['bukchon']] });
-    expect(result.current.prefs).toEqual({ onboarded: true, interests: ['food'], saved: [], subscribed: false });
+    expect(result.current.trip).toMatchObject({ name: 'Old', startDate: null, days: [['bukchon']], dayTitles: [''] });
+    expect(result.current.prefs).toEqual({ onboarded: true, subscribed: false });
   });
 
-  it('clearStops keeps the trip name and dates', async () => {
+  it('starting over clears the plan but keeps the dates and length', async () => {
     const { result } = await renderState();
     await act(() => {
-      result.current.setTripName('Seoul');
       result.current.setStartDate('2026-11-02');
-      result.current.addSpot(0, 'bukchon');
+      result.current.startPlan('3');
     });
     await act(() => result.current.clearStops());
-    expect(result.current.trip).toMatchObject({ name: 'Seoul', startDate: '2026-11-02', days: [[], [], []] });
+    expect(result.current.trip).toMatchObject({
+      name: 'My Korea trip',
+      startDate: '2026-11-02',
+      days: [[], [], []],
+      dayTitles: ['', '', ''],
+    });
   });
 
   it('throws a clear error when used outside the provider', async () => {

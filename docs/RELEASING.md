@@ -32,16 +32,16 @@ export or Gradle build after changing one of these values, clear the cache first
 
 ## Smoke test (5 minutes, real Android phone)
 
-- [ ] Fresh install → onboarding → Home shows the countdown card.
-- [ ] Explore → add 3 spots to different days → My Trip shows them; a closed-day warning appears when expected.
-- [ ] Reorder, move to another day, remove a stop.
-- [ ] Today mode → **Naver Map** opens the app (or the website if not installed); **Taxi** card shows Korean.
-- [ ] Toolkit → play a phrase (Korean voice prompt appears if the voice isn't installed).
-- [ ] Read → guides load with images; category chips, search and Load more work; links open in a blue Custom Tab.
+- [ ] Fresh install → welcome → "How long is your trip?" → tap 5 days → My Trip shows 5 titled days with photos.
+- [ ] My Trip → settings (top right) → add an arrival date → the countdown appears; a closed-day warning shows when expected.
+- [ ] Places → add a place to Day 2 → it appears on the Day 2 card.
+- [ ] In a day, tap ⋯ on a stop → Earlier / Later, move to another day, remove.
+- [ ] Tap a day → **Directions** opens Naver Map (or the website if not installed); **Taxi card** shows Korean.
+- [ ] Korean → play a phrase (Korean voice prompt appears if the voice isn't installed).
+- [ ] Read → Seoul Sip issues and guides load with images; Load more works; links open in a blue Custom Tab.
 - [ ] Seoul Sip → subscribe (or the beehiiv page opens if no endpoint is configured).
 - [ ] Share trip → open the link on a second phone → Use this trip.
-- [ ] Airplane mode → relaunch → trip, Today mode and cached articles still work.
-- [ ] Kill the app while in Today mode → relaunch → it reopens on today's day.
+- [ ] Airplane mode → relaunch → trip, day view and cached articles still work.
 
 ## Hotfixes
 

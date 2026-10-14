@@ -1,191 +1,145 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { ArticleRow, openLink } from '@/components/article-row';
 import { NewsletterSignup } from '@/components/newsletter-signup';
-import { BrandHeader, Button, Card, Chip, EmptyState, Icon, IconButton, Loading, Screen, T } from '@/components/ui';
+import {
+  BrandHeader,
+  Button,
+  Card,
+  Divider,
+  EmptyState,
+  Icon,
+  IconCircle,
+  Loading,
+  Screen,
+  Section,
+  T,
+} from '@/components/ui';
 import { Config } from '@/config';
 import { fetchGuides, fetchLatestGuides, fetchNewsletter, type Article } from '@/lib/content';
 import { useFeed, type FeedState } from '@/lib/use-feed';
-import { Brand, Fonts, Radius, Space, useColors } from '@/theme';
-
-type Tab = 'guides' | 'newsletter';
-type Filter = { search: string; category: number | null };
+import { Space, useColors } from '@/theme';
 
 const PAGE_SIZE = 20;
+const ISSUES_SHOWN = 3;
 
 export default function ReadScreen() {
   const c = useColors();
-  const params = useLocalSearchParams<{ tab?: string }>();
-  const tab: Tab = params.tab === 'newsletter' ? 'newsletter' : 'guides';
-  const setTab = (next: Tab) => router.setParams({ tab: next });
   const guides = useFeed('guides', fetchLatestGuides);
   const newsletter = useFeed('newsletter', fetchNewsletter);
-  const feed = tab === 'guides' ? guides : newsletter;
-
-  const header = (
-    <BrandHeader title="Read" subtitle="Guides from Unravel Korea and the Seoul Sip newsletter.">
-      <View style={styles.segment}>
-        {(
-          [
-            ['guides', 'Travel guides'],
-            ['newsletter', 'Seoul Sip ☕'],
-          ] as const
-        ).map(([key, label]) => (
-          <Pressable
-            key={key}
-            onPress={() => setTab(key)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: tab === key }}
-            style={[styles.segmentItem, tab === key && styles.segmentItemOn]}>
-            <Text style={[styles.segmentLabel, { color: tab === key ? Brand.navy : '#FFFFFF' }]}>{label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    </BrandHeader>
-  );
 
   return (
     <Screen
-      header={header}
+      header={<BrandHeader title="Read" subtitle="The Seoul Sip newsletter and our latest Korea travel guides." />}
       refreshControl={
         <RefreshControl
-          refreshing={feed.loading && !!feed.data}
-          onRefresh={feed.refresh}
+          refreshing={(guides.loading && !!guides.data) || (newsletter.loading && !!newsletter.data)}
+          onRefresh={() => {
+            guides.refresh();
+            newsletter.refresh();
+          }}
           tintColor={c.primary}
           colors={[c.primary]}
         />
       }>
-      {tab === 'guides' ? <GuidesList latest={guides} /> : <NewsletterList feed={newsletter} />}
+      <SeoulSip feed={newsletter} />
+      <Guides latest={guides} />
+      <About />
     </Screen>
   );
 }
 
-/** WordPress guides: cached latest posts, plus live category filters, search and paging. */
-function GuidesList({ latest }: { latest: FeedState<Article[]> }) {
-  const c = useColors();
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<Filter>({ search: '', category: null });
-  const [filtered, setFiltered] = useState<Article[] | null>(null);
+function SeoulSip({ feed }: { feed: FeedState<Article[]> }) {
+  const issues = (feed.data ?? []).slice(0, ISSUES_SHOWN);
+  return (
+    <Card tone="navy" style={styles.sip}>
+      <View style={styles.sipHead}>
+        <IconCircle name="cafe" size={44} />
+        <View style={{ flex: 1 }}>
+          <T variant="title" tone="inverse">
+            Seoul Sip
+          </T>
+          <T tone="inverse" style={{ opacity: 0.85 }}>
+            What&apos;s happening in Korea, in 5 minutes. Free every week.
+          </T>
+        </View>
+      </View>
+      <NewsletterSignup onDark />
+      {issues.length ? (
+        <View style={{ marginTop: Space.sm }}>
+          <T variant="eyebrow" tone="inverse" style={{ opacity: 0.7, marginBottom: Space.xs }}>
+            LATEST ISSUES
+          </T>
+          {issues.map((a) => (
+            <Pressable key={a.id} onPress={() => openLink(a.url)} style={styles.issue} accessibilityRole="link">
+              <T variant="label" tone="inverse" numberOfLines={2} style={{ flex: 1 }}>
+                {a.title}
+              </T>
+              <Icon name="arrow-forward" size={16} color="#FFFFFF" />
+            </Pressable>
+          ))}
+          <Pressable
+            onPress={() => openLink(`${Config.newsletterUrl}/archive`)}
+            style={styles.issue}
+            accessibilityRole="link">
+            <T variant="label" tone="inverse" style={{ flex: 1, opacity: 0.85 }}>
+              See every issue
+            </T>
+            <Icon name="open-outline" size={16} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+/** Latest posts from the WordPress blog (cached for offline), with "Load more" for older ones. */
+function Guides({ latest }: { latest: FeedState<Article[]> }) {
   const [extra, setExtra] = useState<Article[]>([]);
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // Ignore responses for a filter the reader has already moved away from.
-  const requestId = useRef(0);
-
-  const isFiltered = !!filter.search || filter.category !== null;
-  const base = isFiltered ? filtered : latest.data;
-  const items = [...(base ?? []), ...extra];
-
-  const applyFilter = (next: Filter) => {
-    const id = ++requestId.current;
-    setFilter(next);
-    setFiltered(null);
-    setExtra([]);
-    setPage(1);
-    setHasMore(true);
-    setError(null);
-    if (!next.search && next.category === null) {
-      setBusy(false);
-      return;
-    }
-    setBusy(true);
-    fetchGuides({ search: next.search || undefined, category: next.category ?? undefined })
-      .then((r) => {
-        if (id !== requestId.current) return;
-        setFiltered(r);
-        setHasMore(r.length === PAGE_SIZE);
-      })
-      .catch((e: Error) => {
-        if (id === requestId.current) setError(e.message);
-      })
-      .finally(() => {
-        if (id === requestId.current) setBusy(false);
-      });
-  };
+  // A refresh can bring back posts that "Load more" already added, so de-duplicate by id.
+  const items = [...new Map([...(latest.data ?? []), ...extra].map((a) => [a.id, a])).values()];
 
   const loadMore = () => {
-    const id = requestId.current;
     const next = page + 1;
-    const seen = new Set(items.map((a) => a.id));
     setBusy(true);
-    fetchGuides({ page: next, search: filter.search || undefined, category: filter.category ?? undefined })
+    setError(null);
+    fetchGuides({ page: next })
       .then((r) => {
-        if (id !== requestId.current) return;
-        setExtra((list) => [...list, ...r.filter((a) => !seen.has(a.id))]);
+        setExtra((list) => [...list, ...r]);
         setPage(next);
         setHasMore(r.length === PAGE_SIZE);
       })
-      .catch((e: Error) => {
-        if (id === requestId.current) setError(e.message);
-      })
-      .finally(() => {
-        if (id === requestId.current) setBusy(false);
-      });
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setBusy(false));
   };
 
-  const nothingCached = !isFiltered && !latest.data;
-
   return (
-    <View>
-      <View style={[styles.search, { backgroundColor: c.surface, borderColor: c.border, marginTop: Space.sm }]}>
-        <Icon name="search" size={18} color={c.textMuted} />
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          onSubmitEditing={() => applyFilter({ ...filter, search: query.trim() })}
-          placeholder="Search the blog — Busan, kimchi…"
-          placeholderTextColor={c.textMuted}
-          style={[styles.input, { color: c.text, fontFamily: Fonts.medium }]}
-          returnKeyType="search"
-          autoCorrect={false}
-          accessibilityLabel="Search the blog"
-        />
-        {query ? (
-          <IconButton
-            icon="close"
-            label="Clear search"
-            onPress={() => {
-              setQuery('');
-              applyFilter({ ...filter, search: '' });
-            }}
-          />
-        ) : null}
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        <Chip
-          label="Latest"
-          selected={filter.category === null}
-          onPress={() => applyFilter({ ...filter, category: null })}
-        />
-        {Config.blogCategories.map((cat) => (
-          <Chip
-            key={cat.id}
-            label={cat.label}
-            selected={filter.category === cat.id}
-            onPress={() => applyFilter({ ...filter, category: cat.id })}
-          />
-        ))}
-      </ScrollView>
-
-      {!isFiltered && latest.error && latest.data ? (
+    <Section title="Travel guides">
+      {latest.error && latest.data ? (
         <T variant="caption" tone="warning" style={{ marginBottom: Space.sm }}>
           You&apos;re offline — showing the copy saved on your phone.
         </T>
       ) : null}
-
-      {(nothingCached && latest.loading) || (isFiltered && busy && !filtered) ? <Loading /> : null}
-
-      {nothingCached && !latest.loading && latest.error ? (
-        <OfflineState onRetry={latest.refresh} url={Config.blogUrl} />
-      ) : null}
-
-      {isFiltered && filtered?.length === 0 ? (
-        <EmptyState icon="search" title="No posts found" body="Try a different word or category." />
+      {!latest.data && latest.loading ? <Loading /> : null}
+      {!latest.data && !latest.loading && latest.error ? (
+        <EmptyState
+          icon="cloud-offline"
+          title="Can't load guides right now"
+          body="Connect once and they're saved for offline reading."
+          action={
+            <View style={{ flexDirection: 'row', gap: Space.sm }}>
+              <Button label="Try again" size="sm" onPress={latest.refresh} />
+              <Button label="Open website" size="sm" variant="secondary" onPress={() => openLink(Config.blogUrl)} />
+            </View>
+          }
+        />
       ) : null}
 
       <View style={{ gap: Space.sm }}>
@@ -199,107 +153,69 @@ function GuidesList({ latest }: { latest: FeedState<Article[]> }) {
           {error}
         </T>
       ) : null}
-
       {items.length >= PAGE_SIZE && hasMore ? (
         <Button
-          label={busy ? 'Loading…' : 'Load more'}
+          label={busy ? 'Loading…' : 'Load more guides'}
           variant="secondary"
           disabled={busy}
           style={{ marginTop: Space.md }}
           onPress={loadMore}
         />
       ) : null}
-      {items.length ? (
-        <Button
-          label="Open unravelkorea.com"
-          variant="ghost"
-          icon="open"
-          style={{ marginTop: Space.sm }}
-          onPress={() => openLink(Config.blogUrl)}
-        />
-      ) : null}
-    </View>
+    </Section>
   );
 }
 
-function NewsletterList({ feed }: { feed: FeedState<Article[]> }) {
+function About() {
   return (
-    <View>
-      <Card tone="navy" style={{ marginTop: Space.sm, marginBottom: Space.md, gap: Space.sm }}>
-        <T variant="title" tone="inverse">
-          Know what&apos;s happening in Korea in 5 minutes
-        </T>
-        <T tone="inverse" style={{ opacity: 0.85 }}>
-          K-drama, travel, fashion and news — free in your inbox every week.
-        </T>
-        <NewsletterSignup onDark />
+    <Section title="About">
+      <Card>
+        <AboutRow icon="globe" label="unravelkorea.com" onPress={() => openLink(Config.blogUrl)} />
+        <Divider />
+        <AboutRow icon="images" label="Photo credits" internal onPress={() => router.push('/credits')} />
+        <Divider />
+        <AboutRow icon="shield-checkmark" label="Privacy policy" onPress={() => openLink(Config.privacyPolicyUrl)} />
       </Card>
-
-      {feed.error && feed.data ? (
-        <T variant="caption" tone="warning" style={{ marginBottom: Space.sm }}>
-          You&apos;re offline — showing the copy saved on your phone.
-        </T>
-      ) : null}
-      {!feed.data && feed.loading ? <Loading /> : null}
-      {!feed.data && !feed.loading && feed.error ? (
-        <OfflineState onRetry={feed.refresh} url={Config.newsletterUrl} />
-      ) : null}
-
-      <View style={{ gap: Space.sm }}>
-        {(feed.data ?? []).map((a) => (
-          <ArticleRow key={a.id} article={a} />
-        ))}
-      </View>
-
-      {feed.data?.length ? (
-        <Button
-          label="Full Seoul Sip archive"
-          variant="ghost"
-          icon="open"
-          style={{ marginTop: Space.md }}
-          onPress={() => openLink(`${Config.newsletterUrl}/archive`)}
-        />
-      ) : null}
-    </View>
+      <T variant="caption" tone="muted" style={{ marginTop: Space.sm, textAlign: 'center' }}>
+        Unravel Korea v{Constants.expoConfig?.version ?? '1.0.0'} · Opening hours and prices are approximate.
+      </T>
+    </Section>
   );
 }
 
-function OfflineState({ onRetry, url }: { onRetry: () => void; url: string }) {
+function AboutRow({
+  icon,
+  label,
+  onPress,
+  internal,
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  internal?: boolean;
+}) {
+  const c = useColors();
   return (
-    <EmptyState
-      icon="cloud-offline"
-      title="Can't load right now"
-      body="Connect once and articles are saved for offline reading."
-      action={
-        <View style={{ flexDirection: 'row', gap: Space.sm }}>
-          <Button label="Try again" size="sm" onPress={onRetry} />
-          <Button label="Open website" size="sm" variant="secondary" onPress={() => openLink(url)} />
-        </View>
-      }
-    />
+    <Pressable onPress={onPress} accessibilityRole={internal ? 'button' : 'link'} style={styles.aboutRow}>
+      <IconCircle name={icon} size={34} tone="navy" />
+      <T variant="label" style={{ flex: 1 }}>
+        {label}
+      </T>
+      <Icon name={internal ? 'chevron-forward' : 'open-outline'} size={16} color={c.textMuted} />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  segment: {
-    flexDirection: 'row',
-    padding: 4,
-    borderRadius: Radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-  },
-  segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: Radius.pill },
-  segmentItemOn: { backgroundColor: '#FFFFFF' },
-  segmentLabel: { fontFamily: Fonts.bold, fontSize: 14 },
-  search: {
+  sip: { marginTop: Space.sm, gap: Space.md },
+  sipHead: { flexDirection: 'row', gap: Space.md, alignItems: 'center' },
+  issue: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.sm,
-    paddingLeft: Space.md,
-    paddingRight: 6,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    minHeight: 48,
+    paddingVertical: 11,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.25)',
   },
-  input: { flex: 1, fontSize: 16, paddingVertical: 10 },
-  chips: { gap: Space.sm, paddingVertical: Space.md },
+  aboutRow: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
 });

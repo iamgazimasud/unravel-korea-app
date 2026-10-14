@@ -1,16 +1,23 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { getSpot, InterestLabels, type Interest } from '@/data/spots';
+import { getPlan, type PlanId } from '@/data/plans';
 import * as ops from '@/state/trip-ops';
 import type { Trip } from '@/state/trip-ops';
 
-export { dayDate, doneKey, emptyTrip, stopCount, tripPhase, type Trip, type TripPhase } from '@/state/trip-ops';
+export {
+  dayDate,
+  dayTitle,
+  doneKey,
+  emptyTrip,
+  stopCount,
+  tripPhase,
+  type Trip,
+  type TripPhase,
+} from '@/state/trip-ops';
 
 export type Prefs = {
   onboarded: boolean;
-  interests: Interest[];
-  saved: string[];
   /** Signed up to Seoul Sip from inside the app. */
   subscribed: boolean;
 };
@@ -20,13 +27,12 @@ type PersistedState = { version: 1; trip: Trip; prefs: Prefs };
 
 export const STORAGE_KEY = 'unravel-korea/state';
 
-const defaultPrefs: Prefs = { onboarded: false, interests: [], saved: [], subscribed: false };
+const defaultPrefs: Prefs = { onboarded: false, subscribed: false };
 
 type AppState = {
   ready: boolean;
   trip: Trip;
   prefs: Prefs;
-  setTripName: (name: string) => void;
   setStartDate: (date: string | null) => void;
   setDayCount: (count: number) => void;
   addSpot: (day: number, spotId: string) => void;
@@ -35,11 +41,12 @@ type AppState = {
   moveStopToDay: (fromDay: number, index: number, toDay: number) => void;
   toggleDone: (day: number, spotId: string) => void;
   replaceTrip: (trip: Trip) => void;
-  /** Removes every stop but keeps the trip's name, dates and length. */
+  /** Replaces the trip with a ready-made plan, keeping the arrival date. */
+  startPlan: (planId: PlanId) => void;
+  /** Throws the plan away (keeps length and dates) so the traveler can pick another or build their own. */
   clearStops: () => void;
-  toggleSaved: (spotId: string) => void;
   setSubscribed: () => void;
-  completeOnboarding: (input: { interests: Interest[]; dayCount: number; startDate: string | null }) => void;
+  completeOnboarding: () => void;
 };
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -76,7 +83,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       ready,
       trip,
       prefs,
-      setTripName: (name) => setTrip((t) => ({ ...t, name: name.slice(0, 60) })),
       setStartDate: (startDate) => setTrip((t) => ({ ...t, startDate })),
       setDayCount: (count) => setTrip((t) => ops.resizeDays(t, count)),
       addSpot: (day, spotId) => setTrip((t) => ops.addSpot(t, day, spotId)),
@@ -85,17 +91,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       moveStopToDay: (fromDay, index, toDay) => setTrip((t) => ops.moveStopToDay(t, fromDay, index, toDay)),
       toggleDone: (day, spotId) => setTrip((t) => ops.toggleDone(t, day, spotId)),
       replaceTrip: (next) => setTrip(ops.sanitizeTrip(next)),
-      clearStops: () => setTrip(ops.clearStops),
-      toggleSaved: (spotId) =>
-        setPrefs((p) => ({
-          ...p,
-          saved: p.saved.includes(spotId) ? p.saved.filter((s) => s !== spotId) : [...p.saved, spotId],
-        })),
-      setSubscribed: () => setPrefs((p) => ({ ...p, subscribed: true })),
-      completeOnboarding: ({ interests, dayCount, startDate }) => {
-        setPrefs((p) => ({ ...p, interests, onboarded: true }));
-        setTrip((t) => ops.resizeDays({ ...t, startDate }, dayCount));
+      startPlan: (planId) => {
+        const plan = getPlan(planId);
+        if (plan) setTrip((t) => ops.tripFromPlan(plan, t.startDate));
       },
+      clearStops: () => setTrip((t) => ({ ...ops.clearStops(t), name: ops.DEFAULT_TRIP_NAME })),
+      setSubscribed: () => setPrefs((p) => ({ ...p, subscribed: true })),
+      completeOnboarding: () => setPrefs((p) => ({ ...p, onboarded: true })),
     }),
     [ready, trip, prefs],
   );
@@ -124,12 +126,7 @@ export async function loadState(): Promise<{ trip: Trip; prefs: Prefs } | null> 
 }
 
 function sanitizePrefs(input: unknown): Prefs {
+  // Older versions also saved `interests` and `saved` spots; those features are gone, so they are dropped.
   const raw = (input ?? {}) as Partial<Record<keyof Prefs, unknown>>;
-  const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
-  return {
-    onboarded: raw.onboarded === true,
-    interests: strings(raw.interests).filter((i): i is Interest => i in InterestLabels),
-    saved: strings(raw.saved).filter((id) => !!getSpot(id)),
-    subscribed: raw.subscribed === true,
-  };
+  return { onboarded: raw.onboarded === true, subscribed: raw.subscribed === true };
 }

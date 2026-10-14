@@ -3,6 +3,7 @@
  * safe inside React state updaters and easy to unit-test.
  */
 
+import type { Plan } from '@/data/plans';
 import { getSpot } from '@/data/spots';
 import { addDays, daysBetween, isValidISODate, today } from '@/lib/dates';
 
@@ -12,19 +13,37 @@ export type Trip = {
   startDate: string | null;
   /** Spot ids for each day, in visiting order. */
   days: string[][];
+  /** A short theme per day ("Royal Seoul"), same length as `days`. Empty string = no title. */
+  dayTitles: string[];
   /** Stops ticked off in Today mode, as `dayIndex:spotId`. */
   done: string[];
 };
 
 export const MAX_DAYS = 21;
+export const MAX_TITLE_LENGTH = 40;
 export const DEFAULT_TRIP_NAME = 'My Korea trip';
 
-export const emptyTrip = (dayCount = 3): Trip => ({
-  name: DEFAULT_TRIP_NAME,
-  startDate: null,
-  days: Array.from({ length: clampDays(dayCount) }, () => []),
-  done: [],
-});
+export const emptyTrip = (dayCount = 3, startDate: string | null = null): Trip => {
+  const n = clampDays(dayCount);
+  return {
+    name: DEFAULT_TRIP_NAME,
+    startDate,
+    days: Array.from({ length: n }, () => []),
+    dayTitles: Array.from({ length: n }, () => ''),
+    done: [],
+  };
+};
+
+/** A fresh trip from a ready-made plan. Keeps the traveler's arrival date. */
+export function tripFromPlan(plan: Plan, startDate: string | null = null): Trip {
+  return sanitizeTrip({
+    name: plan.name,
+    startDate,
+    days: plan.plan.map((d) => d.spots),
+    dayTitles: plan.plan.map((d) => d.title),
+    done: [],
+  });
+}
 
 export function clampDays(count: number): number {
   return Math.max(1, Math.min(MAX_DAYS, Math.floor(count) || 1));
@@ -48,15 +67,23 @@ function withDays(trip: Trip, days: string[][]): Trip {
   return pruneDone({ ...trip, days });
 }
 
+/** Pads or trims titles to one per day. */
+function fitTitles(titles: string[], count: number): string[] {
+  return Array.from({ length: count }, (_, i) => titles[i] ?? '');
+}
+
 /** Grows or shrinks the trip. Stops on removed days are folded into the new last day, never dropped. */
 export function resizeDays(trip: Trip, count: number): Trip {
   const n = clampDays(count);
   const { days } = trip;
   if (n === days.length) return trip;
-  if (n > days.length) return withDays(trip, [...days, ...Array.from({ length: n - days.length }, () => [])]);
+  const dayTitles = fitTitles(trip.dayTitles, n);
+  if (n > days.length) {
+    return withDays({ ...trip, dayTitles }, [...days, ...Array.from({ length: n - days.length }, () => [])]);
+  }
   const kept = days.slice(0, n);
   kept[n - 1] = [...new Set([...kept[n - 1], ...days.slice(n).flat()])];
-  return withDays(trip, kept);
+  return withDays({ ...trip, dayTitles }, kept);
 }
 
 export function addSpot(trip: Trip, day: number, spotId: string): Trip {
@@ -114,9 +141,14 @@ export function toggleDone(trip: Trip, day: number, spotId: string): Trip {
   };
 }
 
-/** Keeps days and dates, removes every stop. */
+/** Keeps days and dates, removes every stop (and the day themes that described them). */
 export function clearStops(trip: Trip): Trip {
-  return { ...trip, days: trip.days.map(() => []), done: [] };
+  return { ...trip, days: trip.days.map(() => []), dayTitles: trip.days.map(() => ''), done: [] };
+}
+
+/** The day's theme, or "Day 3" when it has none. */
+export function dayTitle(trip: Trip, dayIndex: number): string {
+  return trip.dayTitles[dayIndex] || `Day ${dayIndex + 1}`;
 }
 
 /**
@@ -130,10 +162,16 @@ export function sanitizeTrip(input: unknown): Trip {
     .map((d) =>
       Array.isArray(d) ? [...new Set(d.filter((id): id is string => typeof id === 'string' && !!getSpot(id)))] : [],
     );
+  if (!days.length) days.push([]);
   const name = typeof raw.name === 'string' && raw.name.trim() ? raw.name.trim().slice(0, 60) : DEFAULT_TRIP_NAME;
   const startDate = typeof raw.startDate === 'string' && isValidISODate(raw.startDate) ? raw.startDate : null;
+  // Older saves have no titles; they simply get untitled days.
+  const titles = Array.isArray(raw.dayTitles) ? raw.dayTitles : [];
+  const dayTitles = days.map((_, i) =>
+    typeof titles[i] === 'string' ? (titles[i] as string).trim().slice(0, MAX_TITLE_LENGTH) : '',
+  );
   const done = Array.isArray(raw.done) ? raw.done.filter((k): k is string => typeof k === 'string') : [];
-  return pruneDone({ name, startDate, days: days.length ? days : [[]], done });
+  return pruneDone({ name, startDate, days, dayTitles, done });
 }
 
 export function dayDate(trip: Trip, dayIndex: number): string | null {

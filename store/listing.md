@@ -17,21 +17,22 @@ forms. Assets are in this folder.
 
 > Planning your first trip to Korea? Unravel Korea turns a pile of tabs into one simple plan you can carry in your pocket — even without signal on the subway.
 >
-> PLAN DAY BY DAY
-> • Pick from 32 hand-picked places we've actually visited: palaces, hanok villages, markets, shopping streets, day trips and more.
-> • Drop them onto days, reorder in a tap, and see roughly how many hours each day takes.
+> YOUR WHOLE TRIP IN ONE TAP
+> • Tell us how long you're staying — 3, 5 or 7 days — and get a complete day-by-day Seoul plan from our most-read guide: palaces, markets, the Han River, Suwon, the DMZ and Nami Island.
+> • Every day is grouped by neighbourhood, so you spend your time exploring, not on the subway.
+> • Change anything: add from 32 hand-picked places we've actually visited, move or remove stops.
 > • Add your dates and we'll warn you when a palace or market is usually closed on the day you planned it.
 > • Share your plan with friends — they can copy it into their own app.
 >
 > GET AROUND ON THE DAY
-> • Today mode shows what's next, how to get there by subway, and opening hours.
-> • One tap opens the place in Naver Map or KakaoMap — the apps that actually work in Korea.
+> • "Today" shows what's next, how to get there by subway, and opening hours.
+> • One tap opens directions in Naver Map — the map that actually works in Korea.
 > • Show-the-driver taxi card with the destination in big Korean letters.
 > • Tick off stops as you go. Your trip is saved on your phone and works offline.
 >
 > SPEAK A LITTLE KOREAN
-> • Everyday phrases for restaurants, shopping and getting around, with audio and a full-screen "show staff" mode.
-> • Emergency numbers, transit card tips, taxi apps and etiquette in one place.
+> • The 12 phrases you'll actually use, with audio and a full-screen "show staff" mode.
+> • Emergency numbers and the three things to know before you land.
 >
 > READ LIKE A LOCAL
 > • Travel guides from unravelkorea.com: Seoul itineraries, Busan, Korean food, day trips and more.
@@ -53,7 +54,7 @@ forms. Assets are in this folder.
 | ----------------- | -------------------------------------------- | --------------------- |
 | App icon          | `icon-512.png`                               | 512×512 PNG           |
 | Feature graphic   | `feature-graphic-1024x500.png`               | 1024×500 PNG/JPG      |
-| Phone screenshots | `screenshots/01-home.png` … `07-toolkit.png` | 2–8 images, 1080×1920 |
+| Phone screenshots | `screenshots/01-welcome.png` … `07-read.png` | 2–8 images, 1080×1920 |
 
 The screenshots were rendered from the app's web build at Android phone size (360×640 dp at 3×)
 with a demo trip loaded. Before the public launch, consider retaking them on a real Android device so
@@ -75,7 +76,7 @@ send the email address you enter to beehiiv to deliver the Seoul Sip newsletter.
 | Purpose                                                             | Communications (newsletter)                                     |
 | Encrypted in transit                                                | Yes (HTTPS)                                                     |
 | Can users request deletion?                                         | Yes — unsubscribe link in every email / contact via the website |
-| Anything else (location, contacts, photos, identifiers, analytics)? | No. Trips and saved places stay on the device                   |
+| Anything else (location, contacts, photos, identifiers, analytics)? | No. Trips stay on the device                                    |
 
 **Ads:** No ads. (Affiliate links open partner websites; they are not ads under Play's definition.)
 

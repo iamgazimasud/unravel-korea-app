@@ -7,14 +7,14 @@ import { getSpot } from '@/data/spots';
 import { formatDate } from '@/lib/dates';
 import { confirm } from '@/lib/platform';
 import { decodeSharedTrip } from '@/lib/share';
-import { dayDate, stopCount, useAppState } from '@/state/app-state';
+import { dayDate, dayTitle, stopCount, useAppState } from '@/state/app-state';
 import { Radius, Space } from '@/theme';
 
 const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
 /** Opened from a shared link: unravelkorea://import?n=...&s=...&d=... */
 export default function ImportScreen() {
-  const params = useLocalSearchParams<{ n?: string; s?: string; d?: string }>();
+  const params = useLocalSearchParams<{ n?: string; s?: string; d?: string; t?: string }>();
   const { ready, trip, replaceTrip } = useAppState();
   const shared = decodeSharedTrip(params);
 
@@ -42,7 +42,7 @@ export default function ImportScreen() {
       return;
     }
     replaceTrip(shared);
-    router.replace('/trip');
+    router.replace('/');
   };
 
   const header = (
@@ -50,7 +50,7 @@ export default function ImportScreen() {
       back={close}
       eyebrow="SOMEONE SHARED A TRIP WITH YOU"
       title={shared.name}
-      subtitle={`${shared.days.length} days · ${stopCount(shared)} stops`}>
+      subtitle={`${shared.days.length} days · ${stopCount(shared)} places`}>
       <HeaderPill label="Use this trip" icon="download" onPress={save} />
     </BrandHeader>
   );
@@ -63,7 +63,7 @@ export default function ImportScreen() {
           return (
             <Card key={i} style={{ gap: Space.sm }}>
               <T variant="heading">
-                Day {i + 1}
+                {dayTitle(shared, i)}
                 {date ? <T tone="muted">{`  ${formatDate(date)}`}</T> : null}
               </T>
               {ids.length ? (

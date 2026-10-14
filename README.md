@@ -7,16 +7,17 @@ Built with Expo SDK 57, Expo Router and TypeScript.
 
 ## What's in v1
 
-| Screen           | What it does                                                                                                                               |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Onboarding**   | Trip length, arrival date, interests, and in-app Seoul Sip signup                                                                          |
-| **Home**         | Trip countdown / "Day 2 of 5" card, spots picked from your interests, latest guides, latest Seoul Sip, travel essentials (affiliate links) |
-| **Explore**      | 32 curated places with photos, search in English or Korean, categories, saved spots, one-tap "add to day"                                  |
-| **My Trip**      | Day-by-day planner: name, start date, length, reorder / move / remove stops, hours per day, **closed-day warnings**, share link            |
-| **Today mode**   | Next stop, Korean name in big type, directions, **Open in Naver Map / KakaoMap**, taxi card, tick off stops                                |
-| **Read**         | WordPress guides with category filters, search and "Load more"; Seoul Sip posts; both cached for offline reading                           |
-| **Toolkit**      | Korean phrases with audio + full-screen "show staff" mode, emergency numbers, tips, privacy policy                                         |
-| **Shared trips** | `unravelkorea://import?n=…&s=…&d=…` opens a preview so a friend can copy the trip                                                          |
+Built to be obvious on first use: **one question to start, four tabs, two or three buttons per screen.**
+
+| Screen           | What it does                                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Welcome**      | "How long is your trip?" — 3, 5 or 7 days. One tap builds a complete day-by-day Seoul plan from the blog's itinerary     |
+| **My Trip**      | Countdown, then "Today · Day 2 of 5". Each day is a card with its theme ("Royal Seoul") and photos. Before-you-fly links |
+| **Day**          | Next stop with the Korean name in big type, **Directions** (Naver Map) and **Taxi card**; tick stops off; move/remove    |
+| **Places**       | 32 curated places with photos, search in English or Korean, 4 simple filters, one-tap "add to my trip"                   |
+| **Korean**       | The 12 phrases you'll actually use (audio + full-screen "show staff"), emergency numbers, 3 tips                         |
+| **Read**         | Seoul Sip signup and latest issues, latest Unravel Korea guides (cached offline), about & privacy                        |
+| **Shared trips** | `unravelkorea://import?n=…&s=…&d=…` opens a preview so a friend can copy the trip                                        |
 
 Trips and all 32 destination photos are stored on the phone, so everything trip-related works with no signal.
 
@@ -24,7 +25,7 @@ Trips and all 32 destination photos are stored on the phone, so everything trip-
 
 | Source                                  | How                                                                                 | Setup needed                                                                                                                                               |
 | --------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **WordPress** (unravelkorea.com)        | Public REST API `/wp-json/wp/v2/posts` — posts, featured images, categories, search | None. Category ids for the Read filters are in `src/config.ts`                                                                                             |
+| **WordPress** (unravelkorea.com)        | Public REST API `/wp-json/wp/v2/posts` — posts, featured images, categories, search | None                                                                                                                                                       |
 | **beehiiv** (seoulsip.online) — reading | Public sitemap (titles come from post URLs)                                         | Optional: turn on RSS in beehiiv and paste the feed URL into `newsletterRssUrl` for real titles + images                                                   |
 | **beehiiv** — signup                    | App → `server/api/subscribe` (Vercel) → beehiiv API                                 | Deploy `server/` and set `EXPO_PUBLIC_SUBSCRIBE_ENDPOINT` — see [server/README.md](server/README.md). Until then "Subscribe" opens the beehiiv signup page |
 
@@ -42,14 +43,14 @@ Requires Node 22.13+ (`.nvmrc`).
 
 ## Quality checks
 
-| Command                           | What it does                                                                                                              |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `npm run check`                   | Everything below, in order — run before every push                                                                        |
-| `npm run typecheck`               | TypeScript (strict)                                                                                                       |
-| `npm run lint`                    | ESLint (Expo config)                                                                                                      |
-| `npm run format` / `format:check` | Prettier                                                                                                                  |
-| `npm test`                        | Jest + React Native Testing Library: trip logic, share links, content parsing, state persistence, signup form, Today mode |
-| `npm run test:server`             | The beehiiv signup function (Node test runner)                                                                            |
+| Command                           | What it does                                                                                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run check`                   | Everything below, in order — run before every push                                                                                                                  |
+| `npm run typecheck`               | TypeScript (strict)                                                                                                                                                 |
+| `npm run lint`                    | ESLint (Expo config)                                                                                                                                                |
+| `npm run format` / `format:check` | Prettier                                                                                                                                                            |
+| `npm test`                        | Jest + React Native Testing Library: trip logic, share links, content parsing, state persistence, signup form, ready-made plans, My Trip / onboarding / day screens |
+| `npm run test:server`             | The beehiiv signup function (Node test runner)                                                                                                                      |
 
 CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of these plus `expo-doctor` and a
 Hermes Android bundle on every push and pull request. **Actions → Android build** starts an EAS build on
@@ -84,12 +85,12 @@ Store text, graphics, screenshots and the Data safety / content-rating answers a
 4. After that, `npm run submit:android` uploads new builds to the internal track as drafts. This needs a
    Play service-account key; `eas submit` walks you through it.
 5. Store listing checklist:
-   - Privacy policy: `https://unravelkorea.com/privacy-policy/` (also linked inside the app under Toolkit → About).
+   - Privacy policy: `https://unravelkorea.com/privacy-policy/` (also linked inside the app under Read → About).
      Make sure it mentions the newsletter email signup.
    - **Data safety**: the app collects **email address** (optional, only if the user subscribes), shared with
      beehiiv to send the newsletter. Nothing else is collected; trips stay on the device.
    - Content rating questionnaire → Everyone. Target audience 18+ or 13+ (no child-directed content).
-   - Screenshots: phone 1080×1920+ (Home, My Trip, Today mode, Explore, Read).
+   - Screenshots: phone 1080×1920+ — ready-made ones are in `store/screenshots/`.
    - App icon 512×512 and feature graphic 1024×500.
 
 Package name: `com.unravelkorea.app` · deep-link scheme: `unravelkorea` (both in `app.json`).
@@ -139,17 +140,17 @@ closed days and prices are approximate; re-check them before publishing.
 ```
 src/
   app/                 screens (Expo Router)
-    (tabs)/            Home, Explore, My Trip, Read, Toolkit
-    spot/[id].tsx      spot details
-    today.tsx          Today mode
+    (tabs)/            My Trip (index), Places (explore), Korean, Read
+    spot/[id].tsx      place details
+    today.tsx          one day of the trip (?day=N, or today)
     import.tsx         open a shared trip
     onboarding.tsx     first launch
-  components/          UI kit, spot card, add-to-trip sheet, article row, newsletter signup, steppers
-  data/                curated spots, phrases, tips
+  components/          UI kit, sheets (add to trip, stop actions, trip settings), plan card, spot card, …
+  data/                curated spots, ready-made 3/5/7-day plans, Korean phrases
   lib/                 WordPress + beehiiv feeds, offline cache, map deep links, sharing, speech, dates
   state/trip-ops.ts    pure trip operations (unit-tested)
   state/app-state.tsx  trip + preferences, persisted and validated on device
-  config.ts            URLs, blog categories, affiliate links
+  config.ts            URLs and affiliate links
   theme.ts             colors (light/dark), spacing
 plugins/               Expo config plugins (Android map-app queries)
 server/                Vercel function for beehiiv signup (+ tests)
@@ -163,7 +164,7 @@ docs/                  architecture and release guides
 ## Next up (v2 ideas)
 
 - Supabase sync so trips follow you across devices, plus accounts
-- AI itinerary builder ("5 days, foodie, K-drama spots") using only curated spots
+- More ready-made plans (Busan, foodie Seoul, K-drama locations) — they are just data in `src/data/plans.ts`
 - K-drama / K-pop filming-location collection
 - Push notifications (cherry blossom forecast, festivals, trip reminders)
 - Read full WordPress posts natively inside the app

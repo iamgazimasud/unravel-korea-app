@@ -1,61 +1,54 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ShowKoreanModal } from '@/components/show-korean-modal';
 import { SpotPhoto } from '@/components/spot-card';
-import { Badge, BrandHeader, Button, Card, Chip, EmptyState, Icon, IconButton, Screen, T } from '@/components/ui';
+import { StopActionsSheet, type StopRef } from '@/components/stop-actions-sheet';
+import { Badge, BrandHeader, Button, Card, EmptyState, Icon, IconButton, Screen, T } from '@/components/ui';
 import { getSpot, isClosedOn, type Spot } from '@/data/spots';
 import { formatDate, parseISODate, weekdayName } from '@/lib/dates';
 import { openInMap } from '@/lib/maps';
-import { dayDate, doneKey, tripPhase, useAppState } from '@/state/app-state';
-import { Radius, ScreenPadding, Space, useColors } from '@/theme';
+import { dayDate, dayTitle, doneKey, tripPhase, useAppState } from '@/state/app-state';
+import { Radius, Space, useColors } from '@/theme';
 
-/** On-the-ground view: what's next, how to get there, and Korean text for the taxi — all offline. */
-export default function TodayScreen() {
+/**
+ * One day of the trip: what's next, how to get there, and Korean text for the taxi — all offline.
+ * Opens on `?day=N` (0-based) or, without it, on today's day of the trip.
+ */
+export default function DayScreen() {
   const c = useColors();
+  const params = useLocalSearchParams<{ day?: string }>();
   const { ready, trip, toggleDone } = useAppState();
-  const phase = tripPhase(trip);
-  // null = follow the calendar. Derived on every render (not in useState's initializer) so it is
-  // still right when this screen is the first one shown, before the saved trip has loaded.
-  const [picked, setDay] = useState<number | null>(null);
   const [taxiFor, setTaxiFor] = useState<Spot | null>(null);
+  const [actionsFor, setActionsFor] = useState<StopRef | null>(null);
 
+  // Wait for the saved trip, otherwise a cold start on this screen would show the wrong day.
   if (!ready) return null;
 
+  const phase = tripPhase(trip);
   const todayIndex = phase.kind === 'during' ? phase.dayIndex : null;
-  const safeDay = Math.min(picked ?? todayIndex ?? 0, trip.days.length - 1);
-  const isToday = safeDay === todayIndex;
-  const date = dayDate(trip, safeDay);
-  const spots = trip.days[safeDay].map(getSpot).filter((s): s is Spot => !!s);
-  const isDone = (id: string) => trip.done.includes(doneKey(safeDay, id));
+  const requested = Number.parseInt(params.day ?? '', 10);
+  const day = Math.max(0, Math.min(Number.isNaN(requested) ? (todayIndex ?? 0) : requested, trip.days.length - 1));
+  const isToday = day === todayIndex;
+  const date = dayDate(trip, day);
+  const spots = trip.days[day].map(getSpot).filter((s): s is Spot => !!s);
+  const isDone = (id: string) => trip.done.includes(doneKey(day, id));
   const next = spots.find((s) => !isDone(s.id));
   const doneCount = spots.filter((s) => isDone(s.id)).length;
 
   const header = (
     <BrandHeader
       back
-      eyebrow={isToday ? 'TODAY' : 'TRIP DAY'}
-      title={`Day ${safeDay + 1}`}
-      subtitle={`${date ? formatDate(date, { weekday: 'long' }) : 'Add a start date in My Trip to see dates'}${
-        spots.length ? ` · ${doneCount} of ${spots.length} done` : ''
-      }`}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: -ScreenPadding }}
-        contentContainerStyle={{ gap: Space.sm, paddingHorizontal: ScreenPadding }}>
-        {trip.days.map((_, i) => (
-          <Chip
-            onDark
-            key={i}
-            label={i === todayIndex ? `Day ${i + 1} · today` : `Day ${i + 1}`}
-            selected={i === safeDay}
-            onPress={() => setDay(i)}
-          />
-        ))}
-      </ScrollView>
-    </BrandHeader>
+      eyebrow={`${isToday ? 'TODAY · ' : ''}DAY ${day + 1} OF ${trip.days.length}`}
+      title={dayTitle(trip, day)}
+      subtitle={[
+        date ? formatDate(date, { weekday: 'long' }) : null,
+        spots.length ? `${doneCount} of ${spots.length} done` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')}
+    />
   );
 
   return (
@@ -66,7 +59,7 @@ export default function TodayScreen() {
             icon="sunny"
             title="A free day"
             body="Nothing planned — wander, or add a few places."
-            action={<Button label="Browse places" size="sm" onPress={() => router.push('/explore')} />}
+            action={<Button label="Add places" icon="add" size="sm" onPress={() => router.push('/explore')} />}
           />
         </View>
       ) : null}
@@ -108,38 +101,39 @@ export default function TodayScreen() {
             ) : null}
             <View style={styles.row}>
               <Button
-                label="Naver Map"
+                label="Directions"
                 icon="navigate"
                 style={{ flex: 1 }}
                 onPress={() => openInMap('naver', next.mapQuery)}
               />
-              <Button label="Taxi" icon="car" variant="accent" style={{ flex: 1 }} onPress={() => setTaxiFor(next)} />
+              <Button
+                label="Taxi card"
+                icon="car"
+                variant="accent"
+                style={{ flex: 1 }}
+                onPress={() => setTaxiFor(next)}
+              />
             </View>
-            <Button
-              label="Mark as done"
-              icon="checkmark"
-              variant="ghost"
-              onPress={() => toggleDone(safeDay, next.id)}
-            />
+            <Button label="Mark as done" icon="checkmark" variant="ghost" onPress={() => toggleDone(day, next.id)} />
           </View>
         </Card>
       ) : spots.length ? (
         <Card tone="accent" style={{ marginTop: Space.md, alignItems: 'center', gap: Space.sm }}>
           <Icon name="trophy" size={30} color={c.primary} />
-          <T variant="title">All done for today 🎉</T>
+          <T variant="title">All done 🎉</T>
           <T tone="muted">Time for Korean BBQ and an early night.</T>
         </Card>
       ) : null}
 
       {spots.length ? (
         <View style={{ marginTop: Space.xl, gap: Space.sm }}>
-          <T variant="title">Today&apos;s plan</T>
+          <T variant="title">The plan</T>
           {spots.map((s, i) => {
             const done = isDone(s.id);
             return (
               <Card key={s.id} style={styles.stop}>
                 <Pressable
-                  onPress={() => toggleDone(safeDay, s.id)}
+                  onPress={() => toggleDone(day, s.id)}
                   hitSlop={8}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: done }}
@@ -159,6 +153,7 @@ export default function TodayScreen() {
                 <SpotPhoto spot={s} style={[styles.thumb, done && { opacity: 0.5 }]} />
                 <Pressable
                   style={{ flex: 1 }}
+                  accessibilityRole="button"
                   onPress={() => router.push({ pathname: '/spot/[id]', params: { id: s.id } })}>
                   <T variant="label" style={done && { textDecorationLine: 'line-through', opacity: 0.6 }}>
                     {s.name}
@@ -168,16 +163,24 @@ export default function TodayScreen() {
                   </T>
                 </Pressable>
                 <IconButton
-                  icon="navigate"
-                  label={`Directions to ${s.name}`}
-                  onPress={() => openInMap('naver', s.mapQuery)}
+                  icon="ellipsis-horizontal"
+                  label={`Change ${s.name}`}
+                  onPress={() => setActionsFor({ day, index: i })}
                 />
               </Card>
             );
           })}
+          <Button
+            label="Add a place"
+            icon="add"
+            variant="secondary"
+            style={{ marginTop: Space.sm }}
+            onPress={() => router.push('/explore')}
+          />
         </View>
       ) : null}
 
+      <StopActionsSheet stop={actionsFor} onClose={() => setActionsFor(null)} />
       <ShowKoreanModal
         visible={!!taxiFor}
         onClose={() => setTaxiFor(null)}

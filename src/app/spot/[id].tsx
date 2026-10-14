@@ -44,10 +44,9 @@ export default function SpotScreen() {
 function SpotDetail({ spot }: { spot: Spot }) {
   const c = useColors();
   const insets = useSafeAreaInsets();
-  const { trip, prefs, toggleSaved } = useAppState();
+  const { trip } = useAppState();
   const [adding, setAdding] = useState(false);
   const [showTaxi, setShowTaxi] = useState(false);
-  const saved = prefs.saved.includes(spot.id);
   const inDays = trip.days.flatMap((d, i) => (d.includes(spot.id) ? [i + 1] : []));
   const closed = closedDaysLabel(spot);
   const credit = PhotoCredits[spot.id];
@@ -63,12 +62,6 @@ function SpotDetail({ spot }: { spot: Spot }) {
       />
       <View style={[styles.heroBar, { top: insets.top + Space.sm }]}>
         <HeaderButton icon="chevron-back" label="Back" onPress={() => router.back()} />
-        <HeaderButton
-          icon={saved ? 'heart' : 'heart-outline'}
-          label={saved ? 'Remove from saved' : 'Save spot'}
-          active={saved}
-          onPress={() => toggleSaved(spot.id)}
-        />
       </View>
       <View style={styles.heroText}>
         <T variant="eyebrow" tone="inverse" style={{ opacity: 0.85 }}>
@@ -100,30 +93,21 @@ function SpotDetail({ spot }: { spot: Spot }) {
         ) : null}
       </View>
 
+      <Button
+        label={inDays.length ? 'Add to another day' : 'Add to my trip'}
+        icon="add"
+        style={{ marginTop: Space.lg }}
+        onPress={() => setAdding(true)}
+      />
       <View style={styles.buttons}>
         <Button
-          label={inDays.length ? 'Add again' : 'Add to trip'}
-          icon="add"
-          style={{ flex: 1 }}
-          onPress={() => setAdding(true)}
-        />
-        <Button label="Taxi card" icon="car" variant="accent" style={{ flex: 1 }} onPress={() => setShowTaxi(true)} />
-      </View>
-      <View style={styles.buttons}>
-        <Button
-          label="Naver Map"
+          label="Directions"
           icon="navigate"
           variant="secondary"
           style={{ flex: 1 }}
           onPress={() => openInMap('naver', spot.mapQuery)}
         />
-        <Button
-          label="KakaoMap"
-          icon="map"
-          variant="secondary"
-          style={{ flex: 1 }}
-          onPress={() => openInMap('kakao', spot.mapQuery)}
-        />
+        <Button label="Taxi card" icon="car" variant="accent" style={{ flex: 1 }} onPress={() => setShowTaxi(true)} />
       </View>
 
       <Card style={{ marginTop: Space.xl }}>

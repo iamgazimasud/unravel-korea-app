@@ -5,8 +5,6 @@
 
 export type Category = 'heritage' | 'neighborhood' | 'market' | 'shopping' | 'daytrip' | 'nature' | 'food' | 'beyond';
 
-export type Interest = 'history' | 'food' | 'shopping' | 'kculture' | 'nature' | 'nightlife';
-
 export type Spot = {
   id: string;
   name: string;
@@ -24,7 +22,6 @@ export type Spot = {
   price?: string;
   /** Suggested time on site, in hours. */
   duration: number;
-  interests: Interest[];
   tips?: string[];
 };
 
@@ -50,14 +47,15 @@ export const CategoryIcons: Record<Category, string> = {
   beyond: 'map',
 };
 
-export const InterestLabels: Record<Interest, string> = {
-  history: 'History & palaces',
-  food: 'Food',
-  shopping: 'Shopping & K-beauty',
-  kculture: 'K-drama & K-pop',
-  nature: 'Nature & hiking',
-  nightlife: 'Nightlife & cafes',
-};
+/** The four filters on the Places tab — fewer, broader choices than the eight categories. */
+export type PlaceFilter = 'sights' | 'food' | 'shopping' | 'daytrips';
+
+export const PlaceFilters: { id: PlaceFilter; label: string; icon: string; categories: Category[] }[] = [
+  { id: 'sights', label: 'Sights', icon: 'business', categories: ['heritage', 'neighborhood', 'nature'] },
+  { id: 'food', label: 'Food & markets', icon: 'restaurant', categories: ['market', 'food'] },
+  { id: 'shopping', label: 'Shopping', icon: 'bag-handle', categories: ['shopping'] },
+  { id: 'daytrips', label: 'Day trips', icon: 'train', categories: ['daytrip', 'beyond'] },
+];
 
 export const Spots: Spot[] = [
   // Palaces & Heritage
@@ -74,7 +72,6 @@ export const Spots: Spot[] = [
     closedDays: [2],
     price: '₩3,000 — free if you wear hanbok',
     duration: 2.5,
-    interests: ['history', 'kculture'],
     tips: [
       'Guard changing ceremony at 10:00 and 14:00 (not on Tuesdays).',
       'Rent a hanbok nearby for free entry and better photos.',
@@ -93,7 +90,6 @@ export const Spots: Spot[] = [
     closedDays: [1],
     price: '₩3,000 + Secret Garden tour ₩5,000',
     duration: 2.5,
-    interests: ['history', 'nature'],
     tips: ['Secret Garden tickets sell out — book online or arrive at opening.'],
   },
   {
@@ -109,7 +105,6 @@ export const Spots: Spot[] = [
     closedDays: [2],
     price: '₩1,000',
     duration: 1.5,
-    interests: ['history'],
     tips: ['Most days entry is by guided tour only; Saturdays are free to roam.'],
   },
   {
@@ -125,7 +120,6 @@ export const Spots: Spot[] = [
     closedDays: [1],
     price: 'Free',
     duration: 1,
-    interests: ['history'],
   },
 
   // Neighborhoods & Culture
@@ -141,7 +135,6 @@ export const Spots: Spot[] = [
     hours: 'Visitor hours 10:00–17:00 (people live here)',
     price: 'Free',
     duration: 1.5,
-    interests: ['history', 'kculture'],
     tips: ['Keep your voice down — tourists are fined outside visitor hours in the core lanes.'],
   },
   {
@@ -156,7 +149,6 @@ export const Spots: Spot[] = [
     hours: 'Observatory ~10:30–23:00',
     price: 'Observatory ticket extra; the grounds are free',
     duration: 2,
-    interests: ['kculture', 'nightlife', 'nature'],
     tips: ['Go just before sunset to see the city in daylight and lit up.'],
   },
   {
@@ -170,7 +162,6 @@ export const Spots: Spot[] = [
     directions: 'Anguk Stn (Line 3), Exit 6',
     duration: 1.5,
     price: 'Free to wander',
-    interests: ['history', 'shopping'],
     tips: ['Ssamziegil is the spiral-ramp shopping courtyard — easy to miss from the street.'],
   },
   {
@@ -184,7 +175,6 @@ export const Spots: Spot[] = [
     directions: 'Hongik Univ. Stn (Line 2 / Airport Railroad), Exit 9',
     duration: 3,
     price: 'Free to wander',
-    interests: ['nightlife', 'kculture', 'shopping', 'food'],
     tips: ['Busking peaks on weekend evenings along the main "walking street".'],
   },
   {
@@ -198,7 +188,6 @@ export const Spots: Spot[] = [
     directions: 'Jongno 3-ga Stn (Lines 1/3/5), Exit 4 or 6',
     duration: 1.5,
     price: 'Free to wander',
-    interests: ['food', 'nightlife'],
   },
   {
     id: 'yeonnam',
@@ -211,7 +200,6 @@ export const Spots: Spot[] = [
     directions: 'Hongik Univ. Stn (Line 2), Exit 3',
     duration: 2,
     price: 'Free to wander',
-    interests: ['food', 'nightlife', 'nature'],
   },
   {
     id: 'itaewon',
@@ -224,7 +212,6 @@ export const Spots: Spot[] = [
     directions: 'Itaewon Stn (Line 6), Exit 1',
     duration: 2.5,
     price: 'Free to wander',
-    interests: ['nightlife', 'food', 'kculture'],
   },
 
   // Markets
@@ -240,7 +227,6 @@ export const Spots: Spot[] = [
     hours: 'Food stalls ~09:00–23:00',
     price: 'Snacks ₩4,000–10,000',
     duration: 1.5,
-    interests: ['food'],
     tips: ['Some fabric shops close on Sundays; the food alley stays open.'],
   },
   {
@@ -255,7 +241,6 @@ export const Spots: Spot[] = [
     hours: '~10:00–21:00',
     price: 'Snacks from ₩2,000',
     duration: 1,
-    interests: ['food'],
     tips: ['Walk 10 minutes to Mangwon Hangang Park afterwards for a riverside picnic.'],
   },
   {
@@ -271,7 +256,6 @@ export const Spots: Spot[] = [
     closedDays: [0],
     price: 'Free entry',
     duration: 1.5,
-    interests: ['food', 'shopping'],
     tips: ['Most shops close on Sundays.'],
   },
   {
@@ -286,7 +270,6 @@ export const Spots: Spot[] = [
     hours: 'DDP outdoor areas always open; malls until late',
     price: 'Free to wander',
     duration: 2,
-    interests: ['shopping', 'nightlife', 'kculture'],
     tips: ['The LED rose garden lights up after dark.'],
   },
   {
@@ -301,7 +284,6 @@ export const Spots: Spot[] = [
     hours: 'Retail ~03:00–22:00',
     price: 'Seafood priced by weight; upstairs cooking fee per person',
     duration: 1.5,
-    interests: ['food'],
   },
 
   // Shopping
@@ -317,7 +299,6 @@ export const Spots: Spot[] = [
     hours: 'Shops ~10:00–22:00; street food from ~16:00',
     price: 'Free to wander',
     duration: 2,
-    interests: ['shopping', 'food'],
     tips: ['Bring your passport — instant tax refunds at most big beauty stores.'],
   },
   {
@@ -333,7 +314,6 @@ export const Spots: Spot[] = [
     closedDays: [0, 1, 2, 3, 4, 5],
     price: 'Free entry',
     duration: 1,
-    interests: ['shopping', 'kculture'],
   },
   {
     id: 'coex',
@@ -347,7 +327,6 @@ export const Spots: Spot[] = [
     hours: '10:00–22:00',
     price: 'Free',
     duration: 2,
-    interests: ['shopping', 'kculture'],
     tips: ['Bongeunsa Temple is directly across the road.'],
   },
   {
@@ -361,7 +340,6 @@ export const Spots: Spot[] = [
     directions: 'Ewha Womans Univ. Stn (Line 2), Exit 2',
     price: 'Free to wander',
     duration: 1.5,
-    interests: ['shopping'],
   },
 
   // Day Trips
@@ -377,7 +355,6 @@ export const Spots: Spot[] = [
     hours: '~08:00–21:00 (ferry times)',
     price: 'Entry incl. ferry ~₩16,000',
     duration: 6,
-    interests: ['kculture', 'nature'],
     tips: ['Pair with the Garden of Morning Calm — they are on the same rail line.'],
   },
   {
@@ -392,7 +369,6 @@ export const Spots: Spot[] = [
     closedDays: [1],
     price: 'Tours ~₩50,000–90,000',
     duration: 7,
-    interests: ['history'],
     tips: ['Tours can be cancelled at short notice for military reasons.'],
   },
   {
@@ -407,7 +383,6 @@ export const Spots: Spot[] = [
     hours: '~10:00–21:00 (varies by season)',
     price: 'Day pass ~₩60,000+ (cheaper online)',
     duration: 8,
-    interests: ['kculture', 'nature'],
   },
   {
     id: 'morning-calm',
@@ -421,7 +396,6 @@ export const Spots: Spot[] = [
     hours: '~08:30–19:00; lights festival until ~21:00 in winter',
     price: '~₩11,000',
     duration: 4,
-    interests: ['nature', 'kculture'],
   },
   {
     id: 'hwaseong',
@@ -435,7 +409,6 @@ export const Spots: Spot[] = [
     hours: 'Walls open daytime; Haenggung Palace 09:00–18:00',
     price: '₩1,000',
     duration: 5,
-    interests: ['history', 'nature'],
     tips: ['Try Suwon galbi (marinated beef ribs) for dinner.'],
   },
 
@@ -452,7 +425,6 @@ export const Spots: Spot[] = [
     hours: 'Fountain shows ~Apr–Oct evenings',
     price: 'Free',
     duration: 2,
-    interests: ['nature', 'nightlife', 'food'],
     tips: ['Order fried chicken to the park — delivery drivers know the meeting points.'],
   },
   {
@@ -466,7 +438,6 @@ export const Spots: Spot[] = [
     directions: 'Bukhansan Ui Stn (Ui LRT), Exit 2',
     price: 'Free',
     duration: 5,
-    interests: ['nature'],
     tips: ['Baegundae summit is about 3–4 hours return. Start early and bring water.'],
   },
 
@@ -482,7 +453,6 @@ export const Spots: Spot[] = [
     directions: 'Open the map near where you are — Mapo and Hongdae are classic areas',
     price: '~₩16,000–20,000 per portion',
     duration: 1.5,
-    interests: ['food', 'nightlife'],
     tips: ['Most places need an order of at least 2 portions.'],
   },
   {
@@ -496,7 +466,6 @@ export const Spots: Spot[] = [
     directions: 'Anguk Stn (Line 3), Exit 6',
     price: '~₩8,000–12,000 per tea',
     duration: 1,
-    interests: ['food', 'history'],
   },
 
   // Beyond Seoul
@@ -511,7 +480,6 @@ export const Spots: Spot[] = [
     directions: 'KTX Seoul → Busan (~2h30m)',
     price: 'Gamcheon is free',
     duration: 8,
-    interests: ['nature', 'food', 'kculture'],
     tips: ['Give Busan at least 2 days — see the Busan guide in the Read tab.'],
   },
   {
@@ -525,7 +493,6 @@ export const Spots: Spot[] = [
     directions: 'Fly Gimpo → Jeju (~1h10m), then rent a car',
     price: 'Seongsan Ilchulbong ~₩5,000',
     duration: 8,
-    interests: ['nature'],
   },
   {
     id: 'gyeongju',
@@ -538,7 +505,6 @@ export const Spots: Spot[] = [
     directions: 'KTX Seoul → Singyeongju (~2h), then bus',
     price: 'Bulguksa is free',
     duration: 8,
-    interests: ['history'],
   },
 ];
 
