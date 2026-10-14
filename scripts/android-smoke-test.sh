@@ -119,7 +119,7 @@ shot 2-my-trip
 
 echo "3. Every tab opens"
 tap "Places"
-wait_for "places we&apos;ve actually been to"
+wait_for "places we.ve actually been to" # uiautomator escapes & as &amp; but leaves ' as-is
 check_alive
 shot 3-places
 tap "Korean"
