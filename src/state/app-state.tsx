@@ -27,6 +27,8 @@ export type Prefs = {
   onboarded: boolean;
   interests: Interest[];
   saved: string[];
+  /** Signed up to Seoul Sip from inside the app. */
+  subscribed: boolean;
 };
 
 type PersistedState = { version: 1; trip: Trip; prefs: Prefs };
@@ -41,7 +43,7 @@ export const emptyTrip = (dayCount = 3): Trip => ({
   done: [],
 });
 
-const defaultPrefs: Prefs = { onboarded: false, interests: [], saved: [] };
+const defaultPrefs: Prefs = { onboarded: false, interests: [], saved: [], subscribed: false };
 
 type AppState = {
   ready: boolean;
@@ -58,6 +60,7 @@ type AppState = {
   replaceTrip: (trip: Trip) => void;
   resetTrip: () => void;
   toggleSaved: (spotId: string) => void;
+  setSubscribed: () => void;
   completeOnboarding: (input: { interests: Interest[]; dayCount: number; startDate: string | null }) => void;
 };
 
@@ -146,6 +149,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           ...p,
           saved: p.saved.includes(spotId) ? p.saved.filter((s) => s !== spotId) : [...p.saved, spotId],
         })),
+      setSubscribed: () => setPrefs((p) => ({ ...p, subscribed: true })),
       completeOnboarding: ({ interests, dayCount, startDate }) => {
         setPrefs((p) => ({ ...p, interests, onboarded: true }));
         setTrip((t) => ({ ...t, startDate, days: resizeDays(t.days, dayCount) }));

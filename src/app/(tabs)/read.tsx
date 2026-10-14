@@ -1,21 +1,26 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ArticleRow, openLink } from '@/components/article-row';
-import { Button, Card, EmptyState, Loading, Screen, T } from '@/components/ui';
+import { NewsletterSignup } from '@/components/newsletter-signup';
+import { Button, Card, Chip, EmptyState, Icon, IconButton, Loading, Screen, T } from '@/components/ui';
 import { Config } from '@/config';
-import { fetchGuides, fetchNewsletter } from '@/lib/content';
-import { useFeed } from '@/lib/use-feed';
+import { fetchGuides, fetchLatestGuides, fetchNewsletter, type Article } from '@/lib/content';
+import { useFeed, type FeedState } from '@/lib/use-feed';
 import { Radius, Space, useColors } from '@/theme';
 
 type Tab = 'guides' | 'newsletter';
+type Filter = { search: string; category: number | null };
+
+const PAGE_SIZE = 20;
 
 export default function ReadScreen() {
   const c = useColors();
   const params = useLocalSearchParams<{ tab?: string }>();
   const tab: Tab = params.tab === 'newsletter' ? 'newsletter' : 'guides';
   const setTab = (next: Tab) => router.setParams({ tab: next });
-  const guides = useFeed('guides', fetchGuides);
+  const guides = useFeed('guides', fetchLatestGuides);
   const newsletter = useFeed('newsletter', fetchNewsletter);
   const feed = tab === 'guides' ? guides : newsletter;
 
@@ -23,7 +28,14 @@ export default function ReadScreen() {
     <Screen
       title="Read"
       subtitle="Guides from Unravel Korea and the Seoul Sip newsletter."
-      refreshControl={<RefreshControl refreshing={feed.loading && !!feed.data} onRefresh={feed.refresh} tintColor={c.primary} />}>
+      refreshControl={
+        <RefreshControl
+          refreshing={feed.loading && !!feed.data}
+          onRefresh={feed.refresh}
+          tintColor={c.primary}
+          colors={[c.primary]}
+        />
+      }>
       <View style={[styles.segment, { backgroundColor: c.surfaceAlt }]}>
         {(
           [
@@ -44,38 +56,184 @@ export default function ReadScreen() {
         ))}
       </View>
 
-      {tab === 'newsletter' ? (
-        <Card tone="accent" style={{ marginBottom: Space.md, gap: Space.sm }}>
-          <T variant="heading">Know what&apos;s happening in Korea in 5 minutes</T>
-          <T tone="muted">K-drama, travel, fashion and news — free in your inbox every week.</T>
-          <Button label="Subscribe free" icon="mail" variant="accent" onPress={() => openLink(Config.newsletterSubscribeUrl)} />
-        </Card>
+      {tab === 'guides' ? <GuidesList latest={guides} /> : <NewsletterList feed={newsletter} />}
+    </Screen>
+  );
+}
+
+/** WordPress guides: cached latest posts, plus live category filters, search and paging. */
+function GuidesList({ latest }: { latest: FeedState<Article[]> }) {
+  const c = useColors();
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<Filter>({ search: '', category: null });
+  const [filtered, setFiltered] = useState<Article[] | null>(null);
+  const [extra, setExtra] = useState<Article[]>([]);
+  const [page, setPage] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // Ignore responses for a filter the reader has already moved away from.
+  const requestId = useRef(0);
+
+  const isFiltered = !!filter.search || filter.category !== null;
+  const base = isFiltered ? filtered : latest.data;
+  const items = [...(base ?? []), ...extra];
+
+  const applyFilter = (next: Filter) => {
+    const id = ++requestId.current;
+    setFilter(next);
+    setFiltered(null);
+    setExtra([]);
+    setPage(1);
+    setHasMore(true);
+    setError(null);
+    if (!next.search && next.category === null) {
+      setBusy(false);
+      return;
+    }
+    setBusy(true);
+    fetchGuides({ search: next.search || undefined, category: next.category ?? undefined })
+      .then((r) => {
+        if (id !== requestId.current) return;
+        setFiltered(r);
+        setHasMore(r.length === PAGE_SIZE);
+      })
+      .catch((e: Error) => {
+        if (id === requestId.current) setError(e.message);
+      })
+      .finally(() => {
+        if (id === requestId.current) setBusy(false);
+      });
+  };
+
+  const loadMore = () => {
+    const id = requestId.current;
+    const next = page + 1;
+    const seen = new Set(items.map((a) => a.id));
+    setBusy(true);
+    fetchGuides({ page: next, search: filter.search || undefined, category: filter.category ?? undefined })
+      .then((r) => {
+        if (id !== requestId.current) return;
+        setExtra((list) => [...list, ...r.filter((a) => !seen.has(a.id))]);
+        setPage(next);
+        setHasMore(r.length === PAGE_SIZE);
+      })
+      .catch((e: Error) => {
+        if (id === requestId.current) setError(e.message);
+      })
+      .finally(() => {
+        if (id === requestId.current) setBusy(false);
+      });
+  };
+
+  const nothingCached = !isFiltered && !latest.data;
+
+  return (
+    <View>
+      <View style={[styles.search, { backgroundColor: c.surface, borderColor: c.border }]}>
+        <Icon name="search" size={18} color={c.textMuted} />
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          onSubmitEditing={() => applyFilter({ ...filter, search: query.trim() })}
+          placeholder="Search the blog — Busan, kimchi…"
+          placeholderTextColor={c.textMuted}
+          style={[styles.input, { color: c.text }]}
+          returnKeyType="search"
+          autoCorrect={false}
+          accessibilityLabel="Search the blog"
+        />
+        {query ? (
+          <IconButton
+            icon="close"
+            label="Clear search"
+            onPress={() => {
+              setQuery('');
+              applyFilter({ ...filter, search: '' });
+            }}
+          />
+        ) : null}
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+        <Chip label="Latest" selected={filter.category === null} onPress={() => applyFilter({ ...filter, category: null })} />
+        {Config.blogCategories.map((cat) => (
+          <Chip
+            key={cat.id}
+            label={cat.label}
+            selected={filter.category === cat.id}
+            onPress={() => applyFilter({ ...filter, category: cat.id })}
+          />
+        ))}
+      </ScrollView>
+
+      {!isFiltered && latest.error && latest.data ? (
+        <T variant="caption" tone="warning" style={{ marginBottom: Space.sm }}>
+          You&apos;re offline — showing the copy saved on your phone.
+        </T>
       ) : null}
+
+      {(nothingCached && latest.loading) || (isFiltered && busy && !filtered) ? <Loading /> : null}
+
+      {nothingCached && !latest.loading && latest.error ? (
+        <OfflineState onRetry={latest.refresh} url={Config.blogUrl} />
+      ) : null}
+
+      {isFiltered && filtered?.length === 0 ? (
+        <EmptyState icon="search" title="No posts found" body="Try a different word or category." />
+      ) : null}
+
+      <View style={{ gap: Space.sm }}>
+        {items.map((a) => (
+          <ArticleRow key={a.id} article={a} />
+        ))}
+      </View>
+
+      {error ? (
+        <T variant="caption" tone="warning" style={{ marginTop: Space.sm }}>
+          {error}
+        </T>
+      ) : null}
+
+      {items.length >= PAGE_SIZE && hasMore ? (
+        <Button
+          label={busy ? 'Loading…' : 'Load more'}
+          variant="secondary"
+          disabled={busy}
+          style={{ marginTop: Space.md }}
+          onPress={loadMore}
+        />
+      ) : null}
+      {items.length ? (
+        <Button
+          label="Open unravelkorea.com"
+          variant="ghost"
+          icon="open"
+          style={{ marginTop: Space.sm }}
+          onPress={() => openLink(Config.blogUrl)}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+function NewsletterList({ feed }: { feed: FeedState<Article[]> }) {
+  return (
+    <View>
+      <Card tone="accent" style={{ marginBottom: Space.md, gap: Space.sm }}>
+        <T variant="heading">Know what&apos;s happening in Korea in 5 minutes</T>
+        <T tone="muted">K-drama, travel, fashion and news — free in your inbox every week.</T>
+        <NewsletterSignup />
+      </Card>
 
       {feed.error && feed.data ? (
         <T variant="caption" tone="warning" style={{ marginBottom: Space.sm }}>
           You&apos;re offline — showing the copy saved on your phone.
         </T>
       ) : null}
-
       {!feed.data && feed.loading ? <Loading /> : null}
       {!feed.data && !feed.loading && feed.error ? (
-        <EmptyState
-          icon="cloud-offline"
-          title="Can't reach the internet"
-          body="Connect once and articles are saved for offline reading."
-          action={
-            <View style={{ flexDirection: 'row', gap: Space.sm }}>
-              <Button label="Try again" size="sm" onPress={feed.refresh} />
-              <Button
-                label="Open website"
-                size="sm"
-                variant="secondary"
-                onPress={() => openLink(tab === 'guides' ? Config.blogUrl : Config.newsletterUrl)}
-              />
-            </View>
-          }
-        />
+        <OfflineState onRetry={feed.refresh} url={Config.newsletterUrl} />
       ) : null}
 
       <View style={{ gap: Space.sm }}>
@@ -86,18 +244,46 @@ export default function ReadScreen() {
 
       {feed.data?.length ? (
         <Button
-          label={tab === 'guides' ? 'All guides on unravelkorea.com' : 'Full Seoul Sip archive'}
+          label="Full Seoul Sip archive"
           variant="ghost"
           icon="open"
           style={{ marginTop: Space.md }}
-          onPress={() => openLink(tab === 'guides' ? Config.blogUrl : `${Config.newsletterUrl}/archive`)}
+          onPress={() => openLink(`${Config.newsletterUrl}/archive`)}
         />
       ) : null}
-    </Screen>
+    </View>
+  );
+}
+
+function OfflineState({ onRetry, url }: { onRetry: () => void; url: string }) {
+  return (
+    <EmptyState
+      icon="cloud-offline"
+      title="Can't load right now"
+      body="Connect once and articles are saved for offline reading."
+      action={
+        <View style={{ flexDirection: 'row', gap: Space.sm }}>
+          <Button label="Try again" size="sm" onPress={onRetry} />
+          <Button label="Open website" size="sm" variant="secondary" onPress={() => openLink(url)} />
+        </View>
+      }
+    />
   );
 }
 
 const styles = StyleSheet.create({
   segment: { flexDirection: 'row', padding: 4, borderRadius: Radius.md, marginBottom: Space.lg },
   segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: Radius.sm },
+  search: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+    paddingLeft: Space.md,
+    paddingRight: 6,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    minHeight: 46,
+  },
+  input: { flex: 1, fontSize: 16, paddingVertical: 10 },
+  chips: { gap: Space.sm, paddingVertical: Space.md },
 });

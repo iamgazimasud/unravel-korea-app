@@ -1,0 +1,8 @@
+{
+  "name": "unravel-korea-api",
+  "private": true,
+  "description": "Serverless functions for the Unravel Korea app (deploy this folder to Vercel).",
+  "engines": {
+    "node": ">=20"
+  }
+}

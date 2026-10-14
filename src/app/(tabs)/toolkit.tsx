@@ -1,12 +1,16 @@
 import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
-import * as Speech from 'expo-speech';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import Constants from 'expo-constants';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+
+import { openLink } from '@/components/article-row';
 
 import { ShowKoreanModal } from '@/components/show-korean-modal';
 import { Card, Chip, Icon, IconButton, Screen, Section, T } from '@/components/ui';
+import { Config } from '@/config';
 import { EmergencyNumbers, MustHaveApps, PhraseGroups, Tips, type Phrase } from '@/data/toolkit';
+import { speakKorean } from '@/lib/speech';
 import { Space, useColors } from '@/theme';
 
 export default function ToolkitScreen() {
@@ -37,7 +41,7 @@ export default function ToolkitScreen() {
               <IconButton
                 icon="volume-high"
                 label={`Play ${p.en} in Korean`}
-                onPress={() => Speech.speak(p.ko, { language: 'ko-KR', rate: 0.85 })}
+                onPress={() => speakKorean(p.ko)}
               />
               <IconButton icon="copy" label="Copy Korean" onPress={() => Clipboard.setStringAsync(p.ko)} />
             </Card>
@@ -99,6 +103,17 @@ export default function ToolkitScreen() {
         </Card>
       </Section>
 
+      <Section title="About">
+        <Card style={{ gap: Space.md }}>
+          <AboutRow icon="globe" label="unravelkorea.com" onPress={() => openLink(Config.blogUrl)} />
+          <AboutRow icon="cafe" label="Seoul Sip newsletter" onPress={() => openLink(Config.newsletterUrl)} />
+          <AboutRow icon="shield-checkmark" label="Privacy policy" onPress={() => openLink(Config.privacyPolicyUrl)} />
+        </Card>
+        <T variant="caption" tone="muted" style={{ marginTop: Space.sm, textAlign: 'center' }}>
+          Unravel Korea v{Constants.expoConfig?.version ?? '1.0.0'} · Opening hours and prices are approximate.
+        </T>
+      </Section>
+
       <ShowKoreanModal
         visible={!!showing}
         onClose={() => setShowing(null)}
@@ -106,6 +121,19 @@ export default function ToolkitScreen() {
         caption={showing ? `${showing.en} · ${showing.roman}` : ''}
       />
     </Screen>
+  );
+}
+
+function AboutRow({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
+  const c = useColors();
+  return (
+    <Pressable onPress={onPress} accessibilityRole="link" style={styles.tipHeader}>
+      <Icon name={icon} size={20} color={c.textMuted} />
+      <T variant="label" style={{ flex: 1 }}>
+        {label}
+      </T>
+      <Icon name="open-outline" size={16} color={c.textMuted} />
+    </Pressable>
   );
 }
 

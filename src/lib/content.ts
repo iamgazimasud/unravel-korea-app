@@ -28,11 +28,21 @@ type WPPost = {
   };
 };
 
-export async function fetchGuides(page = 1): Promise<Article[]> {
-  const url =
+export type GuideQuery = { page?: number; search?: string; category?: number };
+
+export async function fetchGuides({ page = 1, search, category }: GuideQuery = {}): Promise<Article[]> {
+  let url =
     `${Config.blogUrl}/wp-json/wp/v2/posts?per_page=20&page=${page}` +
     `&_embed=wp:featuredmedia&_fields=id,date,link,title,excerpt,_links,_embedded`;
-  const posts = await getJson<WPPost[]>(url);
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (category) url += `&categories=${category}`;
+
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  // WordPress answers 400 (rest_post_invalid_page_number) when you page past the end.
+  if (res.status === 400 && page > 1) return [];
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  const posts = (await res.json()) as WPPost[];
+
   return posts.map((p) => {
     const media = p._embedded?.['wp:featuredmedia']?.[0];
     const sizes = media?.media_details?.sizes;
@@ -47,6 +57,9 @@ export async function fetchGuides(page = 1): Promise<Article[]> {
     };
   });
 }
+
+/** First page of the latest guides — the cached feed used on Home and in Read. */
+export const fetchLatestGuides = () => fetchGuides();
 
 /** Blog posts that mention a spot — powers "From the blog" on each spot page. */
 export async function searchGuides(query: string): Promise<Article[]> {
@@ -111,6 +124,28 @@ function parseSitemap(xml: string): Article[] {
 function titleFromSlug(slug: string): string {
   const words = decodeURIComponent(slug).replace(/[-_]+/g, ' ').trim();
   return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/**
+ * Signs an email up to Seoul Sip through the server function in `server/` (which holds the beehiiv
+ * API key). Returns false when no endpoint is configured so callers can fall back to the web form.
+ */
+export async function subscribeToNewsletter(email: string): Promise<boolean> {
+  if (!Config.subscribeEndpoint) return false;
+  const res = await fetch(Config.subscribeEndpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? 'Could not subscribe right now. Please try again.');
+  }
+  return true;
+}
+
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 }
 
 // ---------- Offline cache ----------

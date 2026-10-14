@@ -7,7 +7,12 @@ import type { Article } from '@/lib/content';
 import { Radius, Space, useColors } from '@/theme';
 
 export function openLink(url: string) {
+  // Android: Chrome Custom Tab in brand colors. iOS: in-app Safari sheet.
   return WebBrowser.openBrowserAsync(url, {
+    toolbarColor: '#CD2E3A',
+    controlsColor: '#FFFFFF',
+    enableBarCollapsing: true,
+    showTitle: true,
     presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
   });
 }

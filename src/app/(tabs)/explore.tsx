@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { AddToTripSheet } from '@/components/add-to-trip-sheet';
 import { SpotCard } from '@/components/spot-card';
-import { Chip, EmptyState, Icon, Screen, T } from '@/components/ui';
+import { Chip, EmptyState, Icon, IconButton, Screen, T } from '@/components/ui';
 import { CategoryIcons, CategoryLabels, Spots, type Category, type Spot } from '@/data/spots';
 import { useAppState } from '@/state/app-state';
 import { Radius, Space, useColors } from '@/theme';
@@ -40,9 +40,10 @@ export default function ExploreScreen() {
           placeholderTextColor={c.textMuted}
           style={[styles.input, { color: c.text }]}
           returnKeyType="search"
-          clearButtonMode="while-editing"
           autoCorrect={false}
+          accessibilityLabel="Search spots"
         />
+        {query ? <IconButton icon="close" label="Clear search" onPress={() => setQuery('')} /> : null}
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
@@ -92,7 +93,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.sm,
-    paddingHorizontal: Space.md,
+    paddingLeft: Space.md,
+    paddingRight: 6,
     borderRadius: Radius.md,
     borderWidth: 1,
     minHeight: 46,

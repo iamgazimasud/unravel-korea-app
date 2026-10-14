@@ -4,11 +4,12 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AddToTripSheet } from '@/components/add-to-trip-sheet';
 import { ArticleRow, openLink } from '@/components/article-row';
+import { NewsletterSignup } from '@/components/newsletter-signup';
 import { CategoryTile } from '@/components/spot-card';
-import { Button, Card, Icon, Screen, Section, T } from '@/components/ui';
-import { Config, Essentials } from '@/config';
+import { Card, Icon, Screen, Section, T } from '@/components/ui';
+import { Essentials } from '@/config';
 import { Spots, type Spot } from '@/data/spots';
-import { fetchGuides, fetchNewsletter } from '@/lib/content';
+import { fetchLatestGuides, fetchNewsletter } from '@/lib/content';
 import { useFeed } from '@/lib/use-feed';
 import { tripPhase, useAppState } from '@/state/app-state';
 import { Radius, Space, useColors } from '@/theme';
@@ -16,7 +17,7 @@ import { Radius, Space, useColors } from '@/theme';
 export default function HomeScreen() {
   const { trip, prefs } = useAppState();
   const [adding, setAdding] = useState<Spot | null>(null);
-  const guides = useFeed('guides', fetchGuides);
+  const guides = useFeed('guides', fetchLatestGuides);
   const newsletter = useFeed('newsletter', fetchNewsletter);
 
   const picks = useMemo(() => {
@@ -58,13 +59,9 @@ export default function HomeScreen() {
             <ArticleRow key={a.id} article={a} />
           ))}
         </View>
-        <Button
-          label="Subscribe to Seoul Sip"
-          icon="mail"
-          variant="accent"
-          style={{ marginTop: Space.md }}
-          onPress={() => openLink(Config.newsletterSubscribeUrl)}
-        />
+        <View style={{ marginTop: Space.md }}>
+          <NewsletterSignup />
+        </View>
       </Section>
 
       <Section title="Before you fly">

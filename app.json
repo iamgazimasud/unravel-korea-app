@@ -27,7 +27,14 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.unravelkorea.app"
+      "package": "com.unravelkorea.app",
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "output": "static",
@@ -42,12 +49,18 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 120
         }
-      ]
+      ],
+      "./plugins/with-android-map-queries"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "description": "Plan your Korea trip, carry it offline, and read Unravel Korea guides and the Seoul Sip newsletter."
+    "description": "Plan your Korea trip, carry it offline, and read Unravel Korea guides and the Seoul Sip newsletter.",
+    "platforms": [
+      "android",
+      "ios",
+      "web"
+    ]
   }
 }

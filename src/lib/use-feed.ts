@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { readCache, writeCache } from '@/lib/content';
 
-type FeedState<T> = {
+export type FeedState<T> = {
   data: T | null;
   loading: boolean;
   /** Set when the network failed; `data` may still hold the cached copy. */

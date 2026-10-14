@@ -2,10 +2,9 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { openLink } from '@/components/article-row';
+import { NewsletterSignup } from '@/components/newsletter-signup';
 import { DateStepper, NumberStepper } from '@/components/steppers';
 import { Button, Chip, Icon, Screen, T } from '@/components/ui';
-import { Config } from '@/config';
 import { InterestLabels, type Interest } from '@/data/spots';
 import { addDays, today } from '@/lib/dates';
 import { useAppState } from '@/state/app-state';
@@ -74,18 +73,18 @@ export default function OnboardingScreen() {
         </View>
       </Step>
 
-      <Pressable
-        onPress={() => openLink(Config.newsletterSubscribeUrl)}
-        style={[styles.newsletter, { backgroundColor: c.accentSoft }]}>
-        <Icon name="mail" size={22} color={c.accent} />
-        <View style={{ flex: 1 }}>
-          <T variant="label">Get Seoul Sip — free weekly newsletter</T>
-          <T variant="caption" tone="muted">
-            What&apos;s happening in Korea in 5 minutes. Join 5,000+ readers.
-          </T>
+      <View style={[styles.newsletter, { backgroundColor: c.accentSoft }]}>
+        <View style={styles.stepHeader}>
+          <Icon name="mail" size={22} color={c.accent} />
+          <View style={{ flex: 1 }}>
+            <T variant="label">Get Seoul Sip — free weekly newsletter</T>
+            <T variant="caption" tone="muted">
+              What&apos;s happening in Korea in 5 minutes. Join 5,000+ readers.
+            </T>
+          </View>
         </View>
-        <Icon name="open-outline" size={18} color={c.accent} />
-      </Pressable>
+        <NewsletterSignup />
+      </View>
 
       <Button label="Let's go" icon="arrow-forward" style={{ marginTop: Space.xl }} onPress={finish} />
     </Screen>
@@ -124,8 +123,6 @@ const styles = StyleSheet.create({
   stepNumber: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm },
   newsletter: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: Space.md,
     padding: Space.lg,
     borderRadius: Radius.lg,

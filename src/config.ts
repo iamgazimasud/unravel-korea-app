@@ -18,6 +18,24 @@ export const Config = {
    */
   newsletterRssUrl: '',
 
+  /**
+   * In-app newsletter signup. Deploy `server/` to Vercel (see server/README.md), then set
+   * EXPO_PUBLIC_SUBSCRIBE_ENDPOINT=https://<your-project>.vercel.app/api/subscribe (in `.env` or as an
+   * EAS environment variable) or paste the URL here. Your beehiiv API key stays on the server.
+   * While this is empty, "Subscribe" opens the beehiiv signup page instead.
+   */
+  subscribeEndpoint: process.env.EXPO_PUBLIC_SUBSCRIBE_ENDPOINT ?? '',
+
+  /** Required by Google Play for the store listing and in-app. */
+  privacyPolicyUrl: 'https://unravelkorea.com/privacy-policy/',
+
+  /** WordPress category ids shown as filters in the Read tab (from /wp-json/wp/v2/categories). */
+  blogCategories: [
+    { id: 21, label: 'Travel & Destinations' },
+    { id: 25, label: 'Korean Food' },
+    { id: 23, label: 'Reviews' },
+  ],
+
   /** The existing web planner, used as a fallback when sharing to people without the app. */
   webPlannerUrl: 'https://unravel-korea-tools.vercel.app',
 
