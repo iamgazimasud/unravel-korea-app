@@ -3,17 +3,16 @@ import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { AddToTripSheet } from '@/components/add-to-trip-sheet';
 import { SpotCard } from '@/components/spot-card';
-import { Chip, EmptyState, Icon, IconButton, Screen, T } from '@/components/ui';
+import { BrandHeader, Chip, EmptyState, Icon, IconButton, Screen, T } from '@/components/ui';
 import { CategoryIcons, CategoryLabels, Spots, type Category, type Spot } from '@/data/spots';
 import { useAppState } from '@/state/app-state';
-import { Radius, Space, useColors } from '@/theme';
+import { Brand, Fonts, Radius, ScreenPadding, Space } from '@/theme';
 
 type Filter = Category | 'all' | 'saved';
 
 const Categories = Object.keys(CategoryLabels) as Category[];
 
 export default function ExploreScreen() {
-  const c = useColors();
   const { prefs } = useAppState();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -29,26 +28,30 @@ export default function ExploreScreen() {
     });
   }, [query, filter, prefs.saved]);
 
-  return (
-    <Screen title="Explore" subtitle={`${Spots.length} places we've actually been to.`}>
-      <View style={[styles.search, { backgroundColor: c.surface, borderColor: c.border }]}>
-        <Icon name="search" size={18} color={c.textMuted} />
+  const header = (
+    <BrandHeader title="Explore" subtitle={`${Spots.length} places we've actually been to.`}>
+      <View style={styles.search}>
+        <Icon name="search" size={18} color={Brand.navy} />
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder="Search palaces, markets, 시장…"
-          placeholderTextColor={c.textMuted}
-          style={[styles.input, { color: c.text }]}
+          placeholderTextColor="#7A869A"
+          style={styles.input}
           returnKeyType="search"
           autoCorrect={false}
           accessibilityLabel="Search spots"
         />
         {query ? <IconButton icon="close" label="Clear search" onPress={() => setQuery('')} /> : null}
       </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        <Chip label="All" selected={filter === 'all'} onPress={() => setFilter('all')} />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -ScreenPadding, marginTop: Space.md }}
+        contentContainerStyle={styles.chips}>
+        <Chip onDark label="All" selected={filter === 'all'} onPress={() => setFilter('all')} />
         <Chip
+          onDark
           label={`Saved${prefs.saved.length ? ` (${prefs.saved.length})` : ''}`}
           icon="heart"
           selected={filter === 'saved'}
@@ -56,6 +59,7 @@ export default function ExploreScreen() {
         />
         {Categories.map((cat) => (
           <Chip
+            onDark
             key={cat}
             label={CategoryLabels[cat]}
             icon={CategoryIcons[cat]}
@@ -64,8 +68,12 @@ export default function ExploreScreen() {
           />
         ))}
       </ScrollView>
+    </BrandHeader>
+  );
 
-      <View style={{ gap: Space.sm }}>
+  return (
+    <Screen header={header}>
+      <View style={{ gap: Space.sm, marginTop: Space.sm }}>
         {results.map((s) => (
           <SpotCard key={s.id} spot={s} onAdd={setAdding} />
         ))}
@@ -97,12 +105,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.sm,
-    paddingLeft: Space.md,
+    paddingLeft: Space.lg,
     paddingRight: 6,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    minHeight: 46,
+    borderRadius: Radius.pill,
+    backgroundColor: '#FFFFFF',
+    minHeight: 50,
   },
-  input: { flex: 1, fontSize: 16, paddingVertical: 10 },
-  chips: { gap: Space.sm, paddingVertical: Space.md },
+  input: { flex: 1, fontSize: 16, paddingVertical: 12, fontFamily: Fonts.medium, color: Brand.navy },
+  chips: { gap: Space.sm, paddingHorizontal: ScreenPadding },
 });

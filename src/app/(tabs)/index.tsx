@@ -4,16 +4,15 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AddToTripSheet } from '@/components/add-to-trip-sheet';
 import { ArticleRow, openLink } from '@/components/article-row';
-import { BrandLogo } from '@/components/brand-logo';
 import { NewsletterSignup } from '@/components/newsletter-signup';
-import { CategoryTile } from '@/components/spot-card';
-import { Card, Icon, Screen, Section, T } from '@/components/ui';
+import { PhotoCard } from '@/components/spot-card';
+import { BrandHeader, Card, HeaderPill, Icon, IconCircle, Screen, Section, T } from '@/components/ui';
 import { Essentials } from '@/config';
-import { Spots, type Spot } from '@/data/spots';
+import { getSpot, Spots, type Spot } from '@/data/spots';
 import { fetchLatestGuides, fetchNewsletter } from '@/lib/content';
 import { useFeed } from '@/lib/use-feed';
-import { tripPhase, useAppState } from '@/state/app-state';
-import { Brand, Radius, Space, useColors } from '@/theme';
+import { doneKey, stopCount, tripPhase, useAppState, type Trip } from '@/state/app-state';
+import { ScreenPadding, Space } from '@/theme';
 
 export default function HomeScreen() {
   const { trip, prefs } = useAppState();
@@ -34,48 +33,58 @@ export default function HomeScreen() {
   }, [trip.days, prefs.interests]);
 
   return (
-    <Screen title="안녕하세요 👋" subtitle="Your Korea trip, all in one place." above={<BrandLogo height={34} />}>
-      <TripStatusCard />
-
+    <Screen header={<TripHeader trip={trip} />}>
       <Section title="Picked for you" action="See all" onAction={() => router.push('/explore')}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: Space.md }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -ScreenPadding }}
+          contentContainerStyle={{ gap: Space.md, paddingHorizontal: ScreenPadding }}>
           {picks.map((s) => (
-            <PickCard key={s.id} spot={s} onAdd={() => setAdding(s)} />
+            <PhotoCard key={s.id} spot={s} onAdd={() => setAdding(s)} />
           ))}
         </ScrollView>
       </Section>
 
       <Section title="Latest guides" action="More" onAction={() => router.push('/read')}>
         <View style={{ gap: Space.sm }}>
-          {(guides.data ?? []).slice(0, 2).map((a) => (
+          {(guides.data ?? []).slice(0, 3).map((a) => (
             <ArticleRow key={a.id} article={a} />
           ))}
           {!guides.data && guides.error ? <T tone="muted">Guides need a connection the first time.</T> : null}
         </View>
       </Section>
 
-      <Section
-        title="Seoul Sip ☕"
-        action="More"
-        onAction={() => router.push({ pathname: '/read', params: { tab: 'newsletter' } })}>
-        <T tone="muted" style={{ marginBottom: Space.md }}>
-          What&apos;s happening in Korea, in 5 minutes. Free, weekly.
-        </T>
-        <View style={{ gap: Space.sm }}>
-          {(newsletter.data ?? []).slice(0, 2).map((a) => (
-            <ArticleRow key={a.id} article={a} />
-          ))}
+      <Card tone="navy" style={styles.sip}>
+        <View style={styles.sipHead}>
+          <IconCircle name="cafe" size={40} />
+          <View style={{ flex: 1 }}>
+            <T variant="title" tone="inverse">
+              Seoul Sip
+            </T>
+            <T tone="inverse" style={{ opacity: 0.85 }}>
+              What&apos;s happening in Korea, in 5 minutes. Free, weekly.
+            </T>
+          </View>
         </View>
+        {(newsletter.data ?? []).slice(0, 2).map((a) => (
+          <Pressable key={a.id} onPress={() => openLink(a.url)} style={styles.sipRow} accessibilityRole="link">
+            <T variant="label" tone="inverse" numberOfLines={1} style={{ flex: 1 }}>
+              {a.title}
+            </T>
+            <Icon name="arrow-forward" size={16} color="#FFFFFF" />
+          </Pressable>
+        ))}
         <View style={{ marginTop: Space.md }}>
-          <NewsletterSignup />
+          <NewsletterSignup onDark />
         </View>
-      </Section>
+      </Card>
 
       <Section title="Before you fly">
         <View style={{ gap: Space.sm }}>
           {Essentials.map((e) => (
-            <Card key={e.id} onPress={() => openLink(e.url)} style={styles.essential}>
-              <Icon name={e.icon} size={22} />
+            <Card key={e.id} onPress={() => openLink(e.url)} style={styles.essential} accessibilityLabel={e.title}>
+              <IconCircle name={e.icon} />
               <View style={{ flex: 1 }}>
                 <T variant="heading">{e.title}</T>
                 <T variant="caption" tone="muted">
@@ -96,104 +105,75 @@ export default function HomeScreen() {
   );
 }
 
-function TripStatusCard() {
-  const { trip } = useAppState();
+/** The trip status lives inside the blue brand header. */
+function TripHeader({ trip }: { trip: Trip }) {
   const phase = tripPhase(trip);
-  const stops = trip.days.reduce((n, d) => n + d.length, 0);
-
-  let eyebrow = 'YOUR TRIP';
-  let headline = '';
-  let body = '';
-  let cta: { label: string; icon: string; go: () => void };
+  const stops = stopCount(trip);
 
   switch (phase.kind) {
     case 'empty':
-      headline = 'Plan your Korea trip';
-      body = `Pick spots, drop them on days, and carry the plan offline. Takes about 2 minutes.`;
-      cta = { label: 'Start planning', icon: 'compass', go: () => router.push('/explore') };
-      break;
+      return (
+        <BrandHeader
+          logo
+          eyebrow="안녕하세요 👋"
+          title="Plan your Korea trip"
+          subtitle="Pick places, drop them on days, and carry the plan offline.">
+          <HeaderPill label="Start planning" icon="compass" onPress={() => router.push('/explore')} />
+        </BrandHeader>
+      );
     case 'undated':
-      headline = trip.name;
-      body = `${stops} stops across ${trip.days.length} days. Add your start date to get closed-day warnings.`;
-      cta = { label: 'Open my trip', icon: 'calendar', go: () => router.push('/trip') };
-      break;
+      return (
+        <BrandHeader
+          logo
+          eyebrow="YOUR TRIP"
+          title={trip.name}
+          subtitle={`${stops} stops over ${trip.days.length} days · add dates for closed-day warnings`}>
+          <HeaderPill label="Open my trip" icon="calendar" onPress={() => router.push('/trip')} />
+        </BrandHeader>
+      );
     case 'upcoming':
-      eyebrow = 'COUNTDOWN';
-      headline = phase.daysToGo === 1 ? 'Tomorrow! 🎉' : `${phase.daysToGo} days to go`;
-      body = `${trip.name} · ${stops} stops over ${trip.days.length} days.`;
-      cta = { label: 'Review my trip', icon: 'calendar', go: () => router.push('/trip') };
-      break;
+      return (
+        <BrandHeader
+          logo
+          eyebrow={`COUNTDOWN · ${trip.name.toUpperCase()}`}
+          title={phase.daysToGo === 1 ? 'Tomorrow! 🎉' : `${phase.daysToGo} days to go`}
+          subtitle={`${stops} stops planned over ${trip.days.length} days.`}>
+          <HeaderPill label="Review my trip" icon="calendar" onPress={() => router.push('/trip')} />
+        </BrandHeader>
+      );
     case 'during': {
-      const todays = trip.days[phase.dayIndex]?.length ?? 0;
-      eyebrow = `DAY ${phase.dayIndex + 1} OF ${trip.days.length}`;
-      headline = todays ? `${todays} stop${todays > 1 ? 's' : ''} today` : 'A free day today';
-      body = 'Directions, Korean addresses for taxis, and opening hours — all offline.';
-      cta = { label: 'Open Today mode', icon: 'navigate', go: () => router.push('/today') };
-      break;
+      const today = trip.days[phase.dayIndex] ?? [];
+      const nextId = today.find((id) => !trip.done.includes(doneKey(phase.dayIndex, id)));
+      const next = nextId ? getSpot(nextId) : undefined;
+      return (
+        <BrandHeader
+          logo
+          eyebrow={`DAY ${phase.dayIndex + 1} OF ${trip.days.length}`}
+          title={today.length ? `${today.length} stop${today.length > 1 ? 's' : ''} today` : 'A free day today'}
+          subtitle={next ? `Next: ${next.name} · ${next.nameKo}` : today.length ? 'All done for today 🎉' : undefined}>
+          <HeaderPill label="Open Today mode" icon="navigate" onPress={() => router.push('/today')} />
+        </BrandHeader>
+      );
     }
     case 'past':
-      headline = 'Welcome back!';
-      body = 'Hope Korea was everything. Ready to plan the next one?';
-      cta = { label: 'Plan another trip', icon: 'compass', go: () => router.push('/trip') };
-      break;
+      return (
+        <BrandHeader logo eyebrow="WELCOME BACK" title="Hope Korea was amazing" subtitle="Ready to plan the next one?">
+          <HeaderPill label="Plan another trip" icon="compass" onPress={() => router.push('/trip')} />
+        </BrandHeader>
+      );
   }
-
-  return (
-    <Card tone="primary" style={{ gap: Space.sm }}>
-      <T variant="caption" tone="onPrimary" style={{ opacity: 0.85, letterSpacing: 1 }}>
-        {eyebrow}
-      </T>
-      <T variant="title" tone="onPrimary">
-        {headline}
-      </T>
-      <T tone="onPrimary" style={{ opacity: 0.9 }}>
-        {body}
-      </T>
-      <Pressable
-        onPress={cta.go}
-        style={({ pressed }) => [styles.cta, pressed && { opacity: 0.85 }]}
-        accessibilityRole="button">
-        <Icon name={cta.icon} size={18} color={Brand.navy} />
-        <T variant="label" style={{ color: Brand.navy }}>
-          {cta.label}
-        </T>
-      </Pressable>
-    </Card>
-  );
-}
-
-function PickCard({ spot, onAdd }: { spot: Spot; onAdd: () => void }) {
-  const c = useColors();
-  return (
-    <Card onPress={() => router.push({ pathname: '/spot/[id]', params: { id: spot.id } })} style={styles.pick}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <CategoryTile spot={spot} size={40} />
-        <Pressable onPress={onAdd} hitSlop={10} accessibilityLabel={`Add ${spot.name} to trip`}>
-          <Icon name="add-circle" size={28} color={c.primary} />
-        </Pressable>
-      </View>
-      <T variant="heading" numberOfLines={2} style={{ marginTop: Space.sm }}>
-        {spot.name}
-      </T>
-      <T variant="caption" tone="muted" numberOfLines={1}>
-        {spot.nameKo} · {spot.area}
-      </T>
-    </Card>
-  );
 }
 
 const styles = StyleSheet.create({
-  cta: {
+  sip: { marginTop: Space.xl, gap: Space.sm },
+  sipHead: { flexDirection: 'row', gap: Space.md, alignItems: 'center', marginBottom: Space.xs },
+  sipRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.sm,
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFFFFF',
     paddingVertical: 10,
-    paddingHorizontal: Space.lg,
-    borderRadius: Radius.pill,
-    marginTop: Space.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.25)',
   },
-  pick: { width: 180, padding: Space.md, minHeight: 150 },
-  essential: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
+  essential: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.md },
 });

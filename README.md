@@ -11,14 +11,14 @@ Built with Expo SDK 57, Expo Router and TypeScript.
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Onboarding**   | Trip length, arrival date, interests, and in-app Seoul Sip signup                                                                          |
 | **Home**         | Trip countdown / "Day 2 of 5" card, spots picked from your interests, latest guides, latest Seoul Sip, travel essentials (affiliate links) |
-| **Explore**      | 32 curated spots, search in English or Korean, categories, saved spots, one-tap "add to day"                                               |
+| **Explore**      | 32 curated places with photos, search in English or Korean, categories, saved spots, one-tap "add to day"                                  |
 | **My Trip**      | Day-by-day planner: name, start date, length, reorder / move / remove stops, hours per day, **closed-day warnings**, share link            |
 | **Today mode**   | Next stop, Korean name in big type, directions, **Open in Naver Map / KakaoMap**, taxi card, tick off stops                                |
 | **Read**         | WordPress guides with category filters, search and "Load more"; Seoul Sip posts; both cached for offline reading                           |
 | **Toolkit**      | Korean phrases with audio + full-screen "show staff" mode, emergency numbers, tips, privacy policy                                         |
 | **Shared trips** | `unravelkorea://import?n=…&s=…&d=…` opens a preview so a friend can copy the trip                                                          |
 
-Trips are stored on the phone, so everything trip-related works with no signal.
+Trips and all 32 destination photos are stored on the phone, so everything trip-related works with no signal.
 
 ## How it connects to your sites
 

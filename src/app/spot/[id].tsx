@@ -1,32 +1,41 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddToTripSheet } from '@/components/add-to-trip-sheet';
 import { openLink } from '@/components/article-row';
 import { ShowKoreanModal } from '@/components/show-korean-modal';
-import { CategoryTile } from '@/components/spot-card';
-import { Badge, Button, Card, Divider, EmptyState, Icon, Page, T } from '@/components/ui';
-import { CategoryLabels, closedDaysLabel, getSpot, Spots, type Spot } from '@/data/spots';
+import { SpotPhoto } from '@/components/spot-card';
+import {
+  Badge,
+  BrandHeader,
+  Button,
+  Card,
+  Divider,
+  EmptyState,
+  HeaderButton,
+  Icon,
+  IconCircle,
+  Screen,
+  T,
+} from '@/components/ui';
+import { PhotoCredits } from '@/data/spot-photos';
+import { CategoryLabels, closedDaysLabel, getSpot, type Spot } from '@/data/spots';
 import { searchGuides, type Article } from '@/lib/content';
 import { openInMap } from '@/lib/maps';
 import { useAppState } from '@/state/app-state';
-import { Space, useColors } from '@/theme';
-
-/** Pre-renders every spot page for the web build. */
-export function generateStaticParams() {
-  return Spots.map((s) => ({ id: s.id }));
-}
+import { Radius, ScreenPadding, Space, useColors } from '@/theme';
 
 export default function SpotScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const spot = getSpot(id ?? '');
   if (!spot) {
     return (
-      <Page>
-        <Stack.Screen options={{ title: 'Not found' }} />
+      <Screen header={<BrandHeader back title="Not found" />}>
         <EmptyState icon="help" title="We couldn't find that spot" />
-      </Page>
+      </Screen>
     );
   }
   return <SpotDetail spot={spot} />;
@@ -34,46 +43,53 @@ export default function SpotScreen() {
 
 function SpotDetail({ spot }: { spot: Spot }) {
   const c = useColors();
+  const insets = useSafeAreaInsets();
   const { trip, prefs, toggleSaved } = useAppState();
   const [adding, setAdding] = useState(false);
   const [showTaxi, setShowTaxi] = useState(false);
   const saved = prefs.saved.includes(spot.id);
   const inDays = trip.days.flatMap((d, i) => (d.includes(spot.id) ? [i + 1] : []));
   const closed = closedDaysLabel(spot);
+  const credit = PhotoCredits[spot.id];
+
+  const hero = (
+    <View style={styles.hero}>
+      <SpotPhoto spot={spot} style={StyleSheet.absoluteFill} />
+      {/* Top shade keeps the light status bar and buttons readable on bright photos. */}
+      <LinearGradient
+        colors={['rgba(14,21,32,0.55)', 'rgba(14,21,32,0)', 'rgba(14,21,32,0.1)', 'rgba(14,21,32,0.85)']}
+        locations={[0, 0.3, 0.55, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[styles.heroBar, { top: insets.top + Space.sm }]}>
+        <HeaderButton icon="chevron-back" label="Back" onPress={() => router.back()} />
+        <HeaderButton
+          icon={saved ? 'heart' : 'heart-outline'}
+          label={saved ? 'Remove from saved' : 'Save spot'}
+          active={saved}
+          onPress={() => toggleSaved(spot.id)}
+        />
+      </View>
+      <View style={styles.heroText}>
+        <T variant="eyebrow" tone="inverse" style={{ opacity: 0.85 }}>
+          {CategoryLabels[spot.category].toUpperCase()} · {spot.area.toUpperCase()}
+        </T>
+        <T variant="display" tone="inverse">
+          {spot.name}
+        </T>
+        <T variant="korean" tone="inverse" style={{ fontSize: 18, opacity: 0.92 }}>
+          {spot.nameKo}
+        </T>
+      </View>
+    </View>
+  );
 
   return (
-    <Page>
-      <Stack.Screen
-        options={{
-          title: spot.name,
-          headerRight: () => (
-            <Pressable
-              onPress={() => toggleSaved(spot.id)}
-              hitSlop={10}
-              accessibilityLabel={saved ? 'Remove from saved' : 'Save spot'}>
-              <Icon name={saved ? 'heart' : 'heart-outline'} size={24} color={c.primary} />
-            </Pressable>
-          ),
-        }}
-      />
-
-      <View style={styles.hero}>
-        <CategoryTile spot={spot} size={64} />
-        <View style={{ flex: 1 }}>
-          <T variant="caption" tone="primary" style={{ letterSpacing: 0.5 }}>
-            {CategoryLabels[spot.category].toUpperCase()} · {spot.area.toUpperCase()}
-          </T>
-          <T variant="title">{spot.name}</T>
-          <T variant="korean" tone="muted">
-            {spot.nameKo}
-          </T>
-        </View>
-      </View>
-
-      <T style={{ marginTop: Space.md }}>{spot.blurb}</T>
+    <Screen header={hero} statusBackdrop={false} contentStyle={[styles.sheet, { backgroundColor: c.background }]}>
+      <T style={{ fontSize: 16, lineHeight: 24 }}>{spot.blurb}</T>
 
       <View style={styles.badges}>
-        <Badge icon="time" label={`~${spot.duration}h here`} />
+        <Badge tone="primary" icon="time" label={`~${spot.duration}h here`} />
         {closed ? (
           <Badge tone="warning" icon="calendar" label={closed} />
         ) : (
@@ -86,8 +102,18 @@ function SpotDetail({ spot }: { spot: Spot }) {
 
       <View style={styles.buttons}>
         <Button
+          label={inDays.length ? 'Add again' : 'Add to trip'}
+          icon="add"
+          style={{ flex: 1 }}
+          onPress={() => setAdding(true)}
+        />
+        <Button label="Taxi card" icon="car" variant="accent" style={{ flex: 1 }} onPress={() => setShowTaxi(true)} />
+      </View>
+      <View style={styles.buttons}>
+        <Button
           label="Naver Map"
           icon="navigate"
+          variant="secondary"
           style={{ flex: 1 }}
           onPress={() => openInMap('naver', spot.mapQuery)}
         />
@@ -99,24 +125,8 @@ function SpotDetail({ spot }: { spot: Spot }) {
           onPress={() => openInMap('kakao', spot.mapQuery)}
         />
       </View>
-      <View style={styles.buttons}>
-        <Button
-          label="Taxi card"
-          icon="car"
-          variant="secondary"
-          style={{ flex: 1 }}
-          onPress={() => setShowTaxi(true)}
-        />
-        <Button
-          label={inDays.length ? 'Add again' : 'Add to trip'}
-          icon="add"
-          variant="accent"
-          style={{ flex: 1 }}
-          onPress={() => setAdding(true)}
-        />
-      </View>
 
-      <Card style={{ marginTop: Space.xl, gap: Space.xs }}>
+      <Card style={{ marginTop: Space.xl }}>
         <InfoRow icon="train" label="Getting there" value={spot.directions} />
         {spot.hours ? (
           <>
@@ -137,7 +147,7 @@ function SpotDetail({ spot }: { spot: Spot }) {
           <T variant="heading">Tips from our visit</T>
           {spot.tips.map((tip) => (
             <View key={tip} style={{ flexDirection: 'row', gap: Space.sm }}>
-              <Icon name="sparkles" size={16} color={c.accent} />
+              <Icon name="sparkles" size={16} color={c.primary} />
               <T style={{ flex: 1 }}>{tip}</T>
             </View>
           ))}
@@ -146,7 +156,16 @@ function SpotDetail({ spot }: { spot: Spot }) {
 
       <FromTheBlog spot={spot} />
 
-      <T variant="caption" tone="muted" style={{ marginTop: Space.xl, textAlign: 'center' }}>
+      {credit ? (
+        <T
+          variant="caption"
+          tone="muted"
+          style={{ marginTop: Space.xl, textAlign: 'center' }}
+          onPress={() => credit.url && openLink(credit.url)}>
+          Photo: {credit.author} · {credit.license}
+        </T>
+      ) : null}
+      <T variant="caption" tone="muted" style={{ marginTop: Space.sm, textAlign: 'center' }}>
         Opening hours, closed days and prices are approximate and change without notice — check the official source
         before you go.
       </T>
@@ -159,15 +178,14 @@ function SpotDetail({ spot }: { spot: Spot }) {
         korean={spot.nameKo}
         caption={`Please take me to ${spot.name}`}
       />
-    </Page>
+    </Screen>
   );
 }
 
 function InfoRow({ icon, label, value }: { icon: string; label: string; value: string }) {
-  const c = useColors();
   return (
-    <View style={{ flexDirection: 'row', gap: Space.md }}>
-      <Icon name={icon} size={18} color={c.textMuted} />
+    <View style={{ flexDirection: 'row', gap: Space.md, alignItems: 'flex-start' }}>
+      <IconCircle name={icon} size={34} />
       <View style={{ flex: 1 }}>
         <T variant="caption" tone="muted">
           {label}
@@ -200,8 +218,9 @@ function FromTheBlog({ spot }: { spot: Spot }) {
         <Card
           key={p.id}
           onPress={() => openLink(p.url)}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: Space.md }}>
-          <Icon name="book" size={20} />
+          style={{ flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.md }}
+          accessibilityLabel={p.title}>
+          <IconCircle name="book" size={36} tone="navy" />
           <T variant="label" style={{ flex: 1 }}>
             {p.title}
           </T>
@@ -213,7 +232,21 @@ function FromTheBlog({ spot }: { spot: Spot }) {
 }
 
 const styles = StyleSheet.create({
-  hero: { flexDirection: 'row', alignItems: 'center', gap: Space.lg },
+  hero: { height: 380, justifyContent: 'flex-end' },
+  heroBar: {
+    position: 'absolute',
+    left: ScreenPadding,
+    right: ScreenPadding,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  heroText: { paddingHorizontal: ScreenPadding, paddingBottom: 44, gap: 2 },
+  sheet: {
+    marginTop: -26,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    paddingTop: Space.xl,
+  },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm, marginTop: Space.md },
   buttons: { flexDirection: 'row', gap: Space.sm, marginTop: Space.md },
 });

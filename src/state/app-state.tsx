@@ -5,7 +5,7 @@ import { getSpot, InterestLabels, type Interest } from '@/data/spots';
 import * as ops from '@/state/trip-ops';
 import type { Trip } from '@/state/trip-ops';
 
-export { dayDate, emptyTrip, stopCount, tripPhase, type Trip, type TripPhase } from '@/state/trip-ops';
+export { dayDate, doneKey, emptyTrip, stopCount, tripPhase, type Trip, type TripPhase } from '@/state/trip-ops';
 
 export type Prefs = {
   onboarded: boolean;

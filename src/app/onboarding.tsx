@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { BrandLogo } from '@/components/brand-logo';
 import { NewsletterSignup } from '@/components/newsletter-signup';
 import { DateStepper, NumberStepper } from '@/components/steppers';
-import { Button, Chip, Icon, Screen, T } from '@/components/ui';
+import { BrandHeader, Button, Chip, Icon, Screen, T } from '@/components/ui';
 import { InterestLabels, type Interest } from '@/data/spots';
 import { addDays, today } from '@/lib/dates';
 import { useAppState } from '@/state/app-state';
@@ -30,14 +30,17 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <Screen>
-      <View style={styles.hero}>
-        <BrandLogo variant="stacked" height={190} />
-        <T tone="muted" style={styles.tagline}>
-          Plan your trip, carry it offline, and get around like you&apos;ve been before.
-        </T>
-      </View>
-
+    <Screen
+      header={
+        <BrandHeader>
+          <View style={styles.hero}>
+            <BrandLogo variant="stacked" tone="onDark" height={200} />
+            <T tone="inverse" style={styles.tagline}>
+              Plan your trip, carry it offline, and get around like you&apos;ve been before.
+            </T>
+          </View>
+        </BrandHeader>
+      }>
       <Step n={1} title="How long is your trip?">
         <NumberStepper value={dayCount} onChange={setDayCount} unit={['day', 'days']} />
       </Step>
@@ -73,7 +76,7 @@ export default function OnboardingScreen() {
         </View>
       </Step>
 
-      <View style={[styles.newsletter, { backgroundColor: c.accentSoft }]}>
+      <View style={[styles.newsletter, { backgroundColor: c.primarySoft }]}>
         <View style={styles.stepHeader}>
           <Icon name="mail" size={22} color={c.accent} />
           <View style={{ flex: 1 }}>
@@ -96,12 +99,12 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
   return (
     <View style={{ marginTop: Space.xl }}>
       <View style={styles.stepHeader}>
-        <View style={[styles.stepNumber, { backgroundColor: c.primarySoft }]}>
-          <T variant="label" tone="primary">
+        <View style={[styles.stepNumber, { backgroundColor: c.primary }]}>
+          <T variant="label" tone="onPrimary">
             {n}
           </T>
         </View>
-        <T variant="heading">{title}</T>
+        <T variant="title">{title}</T>
       </View>
       {children}
     </View>
@@ -109,10 +112,10 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', marginTop: Space.lg, gap: Space.md },
-  tagline: { textAlign: 'center', maxWidth: 320 },
+  hero: { alignItems: 'center', gap: Space.md, marginTop: -Space.sm },
+  tagline: { textAlign: 'center', maxWidth: 320, opacity: 0.9 },
   stepHeader: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, marginBottom: Space.md },
-  stepNumber: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  stepNumber: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm },
   newsletter: {
     gap: Space.md,

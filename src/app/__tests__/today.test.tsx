@@ -5,7 +5,7 @@ import TodayScreen from '@/app/today';
 import { addDays, today } from '@/lib/dates';
 import { AppStateProvider, STORAGE_KEY } from '@/state/app-state';
 
-jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
+jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }));
 
 async function seed(startDate: string, days: string[][], done: string[] = []) {
   await AsyncStorage.setItem(

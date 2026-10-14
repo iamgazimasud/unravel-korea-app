@@ -1,14 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ArticleRow, openLink } from '@/components/article-row';
 import { NewsletterSignup } from '@/components/newsletter-signup';
-import { Button, Card, Chip, EmptyState, Icon, IconButton, Loading, Screen, T } from '@/components/ui';
+import { BrandHeader, Button, Card, Chip, EmptyState, Icon, IconButton, Loading, Screen, T } from '@/components/ui';
 import { Config } from '@/config';
 import { fetchGuides, fetchLatestGuides, fetchNewsletter, type Article } from '@/lib/content';
 import { useFeed, type FeedState } from '@/lib/use-feed';
-import { Radius, Space, useColors } from '@/theme';
+import { Brand, Fonts, Radius, Space, useColors } from '@/theme';
 
 type Tab = 'guides' | 'newsletter';
 type Filter = { search: string; category: number | null };
@@ -24,19 +24,9 @@ export default function ReadScreen() {
   const newsletter = useFeed('newsletter', fetchNewsletter);
   const feed = tab === 'guides' ? guides : newsletter;
 
-  return (
-    <Screen
-      title="Read"
-      subtitle="Guides from Unravel Korea and the Seoul Sip newsletter."
-      refreshControl={
-        <RefreshControl
-          refreshing={feed.loading && !!feed.data}
-          onRefresh={feed.refresh}
-          tintColor={c.primary}
-          colors={[c.primary]}
-        />
-      }>
-      <View style={[styles.segment, { backgroundColor: c.surfaceAlt }]}>
+  const header = (
+    <BrandHeader title="Read" subtitle="Guides from Unravel Korea and the Seoul Sip newsletter.">
+      <View style={styles.segment}>
         {(
           [
             ['guides', 'Travel guides'],
@@ -48,14 +38,25 @@ export default function ReadScreen() {
             onPress={() => setTab(key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: tab === key }}
-            style={[styles.segmentItem, tab === key && { backgroundColor: c.surface }]}>
-            <T variant="label" tone={tab === key ? 'default' : 'muted'}>
-              {label}
-            </T>
+            style={[styles.segmentItem, tab === key && styles.segmentItemOn]}>
+            <Text style={[styles.segmentLabel, { color: tab === key ? Brand.navy : '#FFFFFF' }]}>{label}</Text>
           </Pressable>
         ))}
       </View>
+    </BrandHeader>
+  );
 
+  return (
+    <Screen
+      header={header}
+      refreshControl={
+        <RefreshControl
+          refreshing={feed.loading && !!feed.data}
+          onRefresh={feed.refresh}
+          tintColor={c.primary}
+          colors={[c.primary]}
+        />
+      }>
       {tab === 'guides' ? <GuidesList latest={guides} /> : <NewsletterList feed={newsletter} />}
     </Screen>
   );
@@ -130,7 +131,7 @@ function GuidesList({ latest }: { latest: FeedState<Article[]> }) {
 
   return (
     <View>
-      <View style={[styles.search, { backgroundColor: c.surface, borderColor: c.border }]}>
+      <View style={[styles.search, { backgroundColor: c.surface, borderColor: c.border, marginTop: Space.sm }]}>
         <Icon name="search" size={18} color={c.textMuted} />
         <TextInput
           value={query}
@@ -138,7 +139,7 @@ function GuidesList({ latest }: { latest: FeedState<Article[]> }) {
           onSubmitEditing={() => applyFilter({ ...filter, search: query.trim() })}
           placeholder="Search the blog — Busan, kimchi…"
           placeholderTextColor={c.textMuted}
-          style={[styles.input, { color: c.text }]}
+          style={[styles.input, { color: c.text, fontFamily: Fonts.medium }]}
           returnKeyType="search"
           autoCorrect={false}
           accessibilityLabel="Search the blog"
@@ -224,10 +225,14 @@ function GuidesList({ latest }: { latest: FeedState<Article[]> }) {
 function NewsletterList({ feed }: { feed: FeedState<Article[]> }) {
   return (
     <View>
-      <Card tone="accent" style={{ marginBottom: Space.md, gap: Space.sm }}>
-        <T variant="heading">Know what&apos;s happening in Korea in 5 minutes</T>
-        <T tone="muted">K-drama, travel, fashion and news — free in your inbox every week.</T>
-        <NewsletterSignup />
+      <Card tone="navy" style={{ marginTop: Space.sm, marginBottom: Space.md, gap: Space.sm }}>
+        <T variant="title" tone="inverse">
+          Know what&apos;s happening in Korea in 5 minutes
+        </T>
+        <T tone="inverse" style={{ opacity: 0.85 }}>
+          K-drama, travel, fashion and news — free in your inbox every week.
+        </T>
+        <NewsletterSignup onDark />
       </Card>
 
       {feed.error && feed.data ? (
@@ -276,17 +281,24 @@ function OfflineState({ onRetry, url }: { onRetry: () => void; url: string }) {
 }
 
 const styles = StyleSheet.create({
-  segment: { flexDirection: 'row', padding: 4, borderRadius: Radius.md, marginBottom: Space.lg },
-  segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: Radius.sm },
+  segment: {
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
+  segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: Radius.pill },
+  segmentItemOn: { backgroundColor: '#FFFFFF' },
+  segmentLabel: { fontFamily: Fonts.bold, fontSize: 14 },
   search: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.sm,
     paddingLeft: Space.md,
     paddingRight: 6,
-    borderRadius: Radius.md,
+    borderRadius: Radius.pill,
     borderWidth: 1,
-    minHeight: 46,
+    minHeight: 48,
   },
   input: { flex: 1, fontSize: 16, paddingVertical: 10 },
   chips: { gap: Space.sm, paddingVertical: Space.md },

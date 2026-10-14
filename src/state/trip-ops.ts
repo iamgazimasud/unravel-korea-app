@@ -102,9 +102,12 @@ export function moveStopToDay(trip: Trip, fromDay: number, index: number, toDay:
   );
 }
 
+/** Key used in `trip.done` for a ticked-off stop. */
+export const doneKey = (day: number, spotId: string) => `${day}:${spotId}`;
+
 export function toggleDone(trip: Trip, day: number, spotId: string): Trip {
   if (!trip.days[day]?.includes(spotId)) return trip;
-  const key = `${day}:${spotId}`;
+  const key = doneKey(day, spotId);
   return {
     ...trip,
     done: trip.done.includes(key) ? trip.done.filter((k) => k !== key) : [...trip.done, key],

@@ -6,6 +6,10 @@ All notable changes to the app. Versions match `version` in `app.json`.
 
 First Android release.
 
+- "Seoul Blue" design: navy-to-blue headers with the logo's wave on every screen, Plus Jakarta Sans,
+  brand-blue buttons/chips, and photos everywhere — 32 bundled destination photos (offline) with a
+  Photo credits screen for their free licences. The trip planner's per-stop buttons are replaced by
+  one action sheet (move up/down, move to another day, remove).
 - Unravel Korea brand: N Seoul Tower logo as app icon (adaptive + themed), splash screen (light and
   dark), in-app logo, and a blue/navy theme taken from the logo with AA-contrast text.
 

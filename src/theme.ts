@@ -55,5 +55,27 @@ export function useColors(): Colors {
 }
 
 export const Space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
-export const Radius = { sm: 8, md: 12, lg: 16, xl: 24, pill: 999 } as const;
+export const ScreenPadding = 20;
+export const Radius = { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 } as const;
 export const MaxWidth = 720;
+
+/** Plus Jakarta Sans, loaded in the root layout. Hangul falls back to the system font automatically. */
+export const Fonts = {
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semibold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
+  extrabold: 'PlusJakartaSans_800ExtraBold',
+} as const;
+
+/** The navy → sky-blue gradient used behind every screen header (from the logo's two blues). */
+export const HeaderGradient = [Brand.navy, '#1D5488', Brand.skyBlue] as const;
+
+/** Soft drop shadow for cards in light mode (dark mode uses a hairline border instead). */
+export const CardShadow = {
+  shadowColor: Brand.navy,
+  shadowOpacity: 0.08,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 6 },
+  elevation: 3,
+} as const;

@@ -6,7 +6,7 @@ import { Button, Icon, T } from '@/components/ui';
 import { Config } from '@/config';
 import { isValidEmail, subscribeToNewsletter } from '@/lib/content';
 import { useAppState } from '@/state/app-state';
-import { Radius, Space, useColors } from '@/theme';
+import { Fonts, Radius, Space, useColors } from '@/theme';
 
 type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; message: string };
 
@@ -14,7 +14,7 @@ type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; message:
  * Seoul Sip signup. With `Config.subscribeEndpoint` set it signs people up in-app via beehiiv;
  * otherwise it opens the beehiiv subscribe page.
  */
-export function NewsletterSignup() {
+export function NewsletterSignup({ onDark }: { onDark?: boolean } = {}) {
   const c = useColors();
   const { prefs, setSubscribed } = useAppState();
   const [email, setEmail] = useState('');
@@ -36,7 +36,7 @@ export function NewsletterSignup() {
       <Button
         label="Subscribe free"
         icon="mail"
-        variant="accent"
+        variant={onDark ? 'secondary' : 'accent'}
         onPress={() => openLink(Config.newsletterSubscribeUrl)}
       />
     );
@@ -73,23 +73,26 @@ export function NewsletterSignup() {
           textContentType="emailAddress"
           returnKeyType="send"
           onSubmitEditing={submit}
-          style={[styles.input, { color: c.text, backgroundColor: c.surface, borderColor: c.border }]}
+          style={[
+            styles.input,
+            { color: c.text, backgroundColor: c.surface, borderColor: onDark ? 'transparent' : c.border },
+          ]}
           accessibilityLabel="Email address"
         />
         <Button
           label={status.kind === 'sending' ? 'Joining…' : 'Subscribe'}
           icon="mail"
-          variant="accent"
+          variant={onDark ? 'primary' : 'accent'}
           disabled={status.kind === 'sending'}
           onPress={submit}
         />
       </View>
       {status.kind === 'error' ? (
-        <T variant="caption" tone="warning">
+        <T variant="caption" tone="warning" style={onDark && { color: '#FCD34D' }}>
           {status.message}
         </T>
       ) : (
-        <T variant="caption" tone="muted">
+        <T variant="caption" tone={onDark ? 'inverse' : 'muted'} style={onDark && { opacity: 0.75 }}>
           Free, weekly, unsubscribe anytime.
         </T>
       )}
@@ -101,11 +104,12 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: Space.sm },
   input: {
     flex: 1,
-    minHeight: 46,
+    minHeight: 48,
     borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Space.md,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Space.lg,
     fontSize: 16,
+    fontFamily: Fonts.medium,
   },
   done: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, padding: Space.md, borderRadius: Radius.md },
 });
