@@ -9,9 +9,9 @@ forms. Assets are in this folder.
 
 > Unravel Korea: Trip Planner
 
-**Short description** (78/80)
+**Short description** (80/80)
 
-> Plan your Korea trip by day, get around offline, and read local travel guides.
+> Plan your Korea trip day by day, carry it offline, and read local travel guides.
 
 **Full description** (≤ 4000)
 
@@ -22,16 +22,16 @@ forms. Assets are in this folder.
 > • Every day is grouped by neighbourhood, so you spend your time exploring, not on the subway.
 > • Change anything: add from 32 hand-picked places we've actually visited, move or remove stops.
 > • Add your dates and we'll warn you when a palace or market is usually closed on the day you planned it.
-> • Share your plan with friends — they can copy it into their own app.
+> • Share your day-by-day plan with friends in any chat app.
 >
 > GET AROUND ON THE DAY
 > • "Today" shows what's next, how to get there by subway, and opening hours.
-> • One tap opens directions in Naver Map — the map that actually works in Korea.
+> • One tap opens each place in Naver Map, Korea's local map app, ready for directions.
 > • Show-the-driver taxi card with the destination in big Korean letters.
 > • Tick off stops as you go. Your trip is saved on your phone and works offline.
 >
 > SPEAK A LITTLE KOREAN
-> • The 12 phrases you'll actually use, with audio and a full-screen "show staff" mode.
+> • The 12 phrases you'll actually use, read aloud by your phone's Korean voice, with a full-screen "show staff" mode.
 > • Emergency numbers and the three things to know before you land.
 >
 > READ LIKE A LOCAL
@@ -43,8 +43,10 @@ forms. Assets are in this folder.
 ## Categorization
 
 - **Category:** Travel & Local
-- **Tags:** Travel guide, Trip planner, Maps & navigation (pick the closest Play offers)
-- **Contact email:** (your support email)
+- **Tags:** up to 5 of the suggested Travel & Local tags for travel guides, trip planning and itineraries. Skip
+  map/navigation tags: the app opens Naver Map, it doesn't show maps itself.
+- **Contact email (required):** an inbox you check, e.g. info@unravelkorea.com once that mailbox exists. Use the
+  same address in the privacy policy.
 - **Website:** https://unravelkorea.com
 - **Privacy policy:** https://unravelkorea.com/privacy-policy/
 
@@ -78,7 +80,7 @@ send the email address you enter to beehiiv to deliver the Seoul Sip newsletter.
 | Can users request deletion?                                         | Yes — unsubscribe link in every email / contact via the website |
 | Anything else (location, contacts, photos, identifiers, analytics)? | No. Trips stay on the device                                    |
 
-**Ads:** No ads. (Affiliate links open partner websites; they are not ads under Play's definition.)
+**Ads:** No. The app has no ad SDKs or ad units; the "Before you fly" tiles are plain partner links.
 
 **Content rating questionnaire:** Reference app category "Travel"; no violence, sexual content,
 gambling, or user-generated content → expected rating **Everyone / PEGI 3**.

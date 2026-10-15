@@ -64,7 +64,7 @@ before production is unlocked. If the count drops below 12, the 14 days start ag
 Your Seoul Sip readers are the easiest testers. Paste into the next issue:
 
 > **Help us test the Unravel Korea app (Android).** We built a free app that plans your Seoul trip in one
-> tap — 3, 5 or 7-day itineraries, offline maps, and Korean phrases. Reply with the Gmail address you use on
+> tap — 3, 5 or 7-day itineraries that work offline, a taxi card for drivers, and Korean phrases. Reply with the Gmail address you use on
 > Google Play and we'll send you an early-access link. Please keep it installed for two weeks. 감사합니다!
 
 In Play Console add their emails to the closed-testing list, then share the **opt-in link** with them.
