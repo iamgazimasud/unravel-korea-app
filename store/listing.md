@@ -64,27 +64,41 @@ the system status bar shows.
 
 ## App content (policy forms)
 
-**Privacy policy:** https://unravelkorea.com/privacy-policy/ — make sure it mentions that the app can
-send the email address you enter to beehiiv to deliver the Seoul Sip newsletter.
+Verified against the production build (versionCode 4: targetSdk 36, minSdk 24; permissions INTERNET,
+ACCESS_NETWORK_STATE and VIBRATE only; no AD_ID, no analytics, crash-reporting or ad SDKs).
 
-**Data safety**
+**Privacy policy:** https://unravelkorea.com/privacy-policy/ — publish the app section from
+[`privacy-policy-app-section.md`](privacy-policy-app-section.md) first. Google checks it during review.
 
-| Question                                                            | Answer                                                          |
-| ------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Does the app collect or share user data?                            | Yes                                                             |
-| Data type                                                           | Personal info → **Email address**                               |
-| Collected / shared                                                  | Collected; shared with beehiiv (newsletter service provider)    |
-| Required or optional                                                | **Optional** — only if the user subscribes                      |
-| Purpose                                                             | Communications (newsletter)                                     |
-| Encrypted in transit                                                | Yes (HTTPS)                                                     |
-| Can users request deletion?                                         | Yes — unsubscribe link in every email / contact via the website |
-| Anything else (location, contacts, photos, identifiers, analytics)? | No. Trips stay on the device                                    |
+**App access:** All functionality is available without any special access (no login).
 
 **Ads:** No. The app has no ad SDKs or ad units; the "Before you fly" tiles are plain partner links.
 
-**Content rating questionnaire:** Reference app category "Travel"; no violence, sexual content,
-gambling, or user-generated content → expected rating **Everyone / PEGI 3**.
+**Advertising ID:** No, the app does not use the advertising ID.
 
-**Target audience:** 18+ (or 13+); the app is not designed for children.
+**Data safety**
+
+| Question                                                | Answer                                                                   |
+| ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Does the app collect or share required user data types? | Yes                                                                      |
+| Is all collected data encrypted in transit?             | Yes (HTTPS only)                                                         |
+| Account creation                                        | The app doesn't allow users to create an account                         |
+| Can users request that their data is deleted?           | Yes: https://unravelkorea.com/contact/ (once the contact email is fixed) |
+| Data type                                               | Personal info → **Email address** (nothing else)                         |
+| Collected / shared                                      | **Collected: Yes. Shared: No** (Vercel and beehiiv process it for us)    |
+| Processed ephemerally?                                  | No                                                                       |
+| Required or optional                                    | **Optional**: only if the user subscribes to Seoul Sip                   |
+| Purpose                                                 | **Developer communications**                                             |
+
+"Shared: No" holds only while Seoul Sip is not in the beehiiv Ad Network, Enhanced Data, Boosts or
+Recommendations. If it joins one, declare Email address as Shared (Advertising or marketing).
+
+**Content rating questionnaire:** category **"All Other App Types"**. Answer No to violence, sexual content,
+profanity, drugs, gambling and user-generated content; users can't interact with each other or share their
+location; no digital purchases. Expected rating **Everyone / PEGI 3**.
+
+**Target audience:** 18 and over (the app isn't designed for children). Appeals to children: No.
+
+**News app:** No. The guides are travel content from the developer's own blog, not news.
 
 **Government app / financial features / health:** No.
