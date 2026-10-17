@@ -20,7 +20,10 @@ const json = (status: number, body: unknown) =>
 export async function POST(request: Request): Promise<Response> {
   const apiKey = process.env.BEEHIIV_API_KEY;
   const publicationId = process.env.BEEHIIV_PUBLICATION_ID;
-  if (!apiKey || !publicationId) return json(500, { error: 'Signup is not configured yet.' });
+  // The app shows this text as-is, so point people to the web signup until the keys are set.
+  if (!apiKey || !publicationId) {
+    return json(503, { error: 'In-app signup is coming soon. For now, join at seoulsip.online/subscribe.' });
+  }
 
   let email = '';
   try {

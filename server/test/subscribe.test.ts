@@ -58,7 +58,8 @@ describe('POST /api/subscribe', () => {
   it('fails safely when not configured', async () => {
     delete process.env.BEEHIIV_API_KEY;
     const res = await POST(request({ email: 'a@b.co' }));
-    assert.equal(res.status, 500);
+    assert.equal(res.status, 503);
+    assert.match(((await res.json()) as { error: string }).error, /seoulsip\.online\/subscribe/);
     assert.equal(calls.length, 0);
   });
 
