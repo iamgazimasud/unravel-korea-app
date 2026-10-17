@@ -18,7 +18,7 @@ const json = (status: number, body: unknown) =>
   });
 
 export async function POST(request: Request): Promise<Response> {
-  const apiKey = process.env.BEEHIIV_API_KEY;
+  const apiKey = process.env.BEEHIIV_API_KEY?.trim();
   const publicationId = process.env.BEEHIIV_PUBLICATION_ID;
   // The app shows this text as-is, so point people to the web signup until the keys are set.
   if (!apiKey || !publicationId) {

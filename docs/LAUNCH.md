@@ -1,5 +1,18 @@
 # Launch: Vercel + Google Play
 
+> **Status (Oct 17, 2026):** the app is in Google Play review on the **closed testing** track (build 1.0.0,
+> versionCode 4). Store listing, all App content forms, content rating (Everyone / PEGI 3) and the privacy policy
+> (unravelkorea.com/privacy-policy/ and unravel-korea-api.vercel.app/privacy) are done.
+>
+> What's left:
+>
+> 1. When Google approves the test, copy the opt-in link from Play Console → Test and release → Closed testing →
+>    Testers, and send it to **at least 12 testers** (invite 15–20). They must stay opted in for 14 days in a row.
+> 2. After 14 days: Dashboard → **Apply for production**, then create the production release with the same build.
+> 3. In-app newsletter signup: beehiiv's Free plan only creates API keys after an identity check (beehiiv →
+>    Settings → API → verify with Stripe). Then add the key as `BEEHIIV_API_KEY` in Vercel and redeploy `server/`.
+>    Until then the app tells people to join at seoulsip.online/subscribe.
+
 Everything in the app and the store listing is ready. What's left needs **your accounts** (payments, identity
 checks and API keys can only come from you). Steps marked **You** take a few minutes each; Claude does the rest.
 
